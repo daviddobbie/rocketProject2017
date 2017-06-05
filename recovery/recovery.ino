@@ -1,4 +1,4 @@
-int piezo = 6;
+int piezo = 12;
 
 /**
  *
@@ -11,7 +11,10 @@ void setup() {
  *
  */
 void loop() {
-    buzzer();
+  buzzer();
+  
+     
+;
 }
 
 /**
@@ -20,6 +23,6 @@ void loop() {
 void buzzer() {
     tone(piezo, 1275);
     delay(1000);
-    tone(piezo, 1500);
+    tone(piezo, 900);
     delay(1000);
 }
