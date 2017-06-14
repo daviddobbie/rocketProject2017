@@ -1,10 +1,14 @@
 int piezo = 12;
-
+int led = 13;
+int readPin = 28;
 /**
  *
  */
 void setup() {
     pinMode(piezo, OUTPUT);
+    pinMode(led, OUTPUT);
+    pinMode(readPin, INPUT);
+    Serial.begin(9600);
 }
 
 /**
@@ -12,9 +16,13 @@ void setup() {
  */
 void loop() {
   buzzer();
+  digitalWrite(led,HIGH); // tests that the controller board is operating
+ 
   
-     
-;
+  int value = analogRead(readPin);
+  Serial.println(value);
+
+
 }
 
 /**
@@ -26,3 +34,33 @@ void buzzer() {
     tone(piezo, 900);
     delay(1000);
 }
+
+
+void enableGPS(){
+}
+
+void disableGPS(){
+  
+}
+
+float getLat(){
+}
+
+float getLon(){
+}
+
+float getElevation(){
+}
+
+float getAccuracy(){
+}
+
+
+struct GPSDataStruct{
+  
+};
+
+struct GPSVelocityStruct{
+  
+};
+
