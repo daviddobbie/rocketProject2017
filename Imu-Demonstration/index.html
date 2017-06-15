@@ -26,18 +26,80 @@
         });
     </script>
     <style>
+        *, *::before, *::after {
+            box-sizing:border-box;
+        }
+
+        body {
+            text-align:center;
+            padding:50px 100px;
+        }
+
         p, ul, li, span {
-            font-family:Operator Mono;
+            font-family:'Fira Code';
+        }
+
+        .header {
+            text-align: center;
+            font-size: 2em;
+            font-weight: 100;
+            display: inline-block;
+            height:70px;
+            line-height:70px;
+            background-color: #80c8ff;
+            padding:0 1em;
+            margin:0.4em;
+            position:relative;
+            clear:both;
+        }
+
+        .header::before, .header::after {
+            content:"";
+            width: 0;
+            height: 0;
+            border-style: solid;
+            z-index:1;
+            position:absolute;
+            top:0;
+        }
+
+        .header::before {
+            right:-50px;
+            border-style: solid;
+            border-width: 70px 50px 0 0;
+            border-color: #80c8ff transparent transparent transparent;
+        }
+
+        .header::after {
+            border-width: 0 50px 70px 0;
+            border-color: transparent #80c8ff transparent transparent;
+            left:-50px;
+        }
+
+        .port-output {
+            font-style: italic;
+            color: #6c6c6c;
+            display:table;
+            margin:0 auto;
+        }
+
+        #port {
+            font-weight:bold;
+        }
+
+        .disclaimer {
+            font-size:smaller;
         }
     </style>
 </head>
 <body>
-    <p>Reading from port <span id="port"></span></p>
+    <p class="header">Realtime IMU Demonstration</p>
+    <p class="port-output">Reading from port <span id="port"></span></p>
     <ul>
-        <li>Pitch: <span id="pitch"></span></li>
-        <li>Roll: <span id="roll"></span></li>
-        <li>Yaw: <span id="yaw"></span></li>
+        <li>Pitch: <span id="pitch"></span>°</li>
+        <li>Roll: <span id="roll"></span>°</li>
+        <li>Yaw: <span id="yaw"></span>°</li>
     </ul>
-    <p>Refreshing at a rate of <strong>10Hz</strong>. Note that the serial port &amp; IMU can output data much faster, this 10Hz limitation arises from the speed and number of requests we can reasonably make to the HTTP server.</p>
+    <p class="disclaimer">Refreshing at a rate of <strong>10Hz</strong>. Note that the serial port &amp; IMU can output data much faster, this 10Hz limitation arises from the speed and number of requests we can reasonably make to the HTTP server.</p>
 </body>
 </html>
