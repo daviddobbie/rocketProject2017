@@ -1,0 +1,43 @@
+<html>
+<head>
+    <script src="/jquery.js"></script>
+    <script type="text/javascript">
+        var onSerialSuccess = function(data) {
+            document.getElementById("port").innerText = data.port;
+            document.getElementById("pitch").innerText = data.imu.pitch;
+            document.getElementById("roll").innerText = data.imu.roll;
+            document.getElementById("yaw").innerText = data.imu.yaw;
+        };
+
+        var onSerialError = function(response) {
+            // TODO
+        };
+
+        $(document).ready(function() {
+            setInterval(function() {
+                $.ajax({
+                    url: '/api/serial',
+                    method: 'GET',
+                    dataType: "json",
+                    success: onSerialSuccess,
+                    error: onSerialError
+                });
+            }, 100);
+        });
+    </script>
+    <style>
+        p, ul, li, span {
+            font-family:Operator Mono;
+        }
+    </style>
+</head>
+<body>
+    <p>Reading from port <span id="port"></span></p>
+    <ul>
+        <li>Pitch: <span id="pitch"></span></li>
+        <li>Roll: <span id="roll"></span></li>
+        <li>Yaw: <span id="yaw"></span></li>
+    </ul>
+    <p>Refreshing at a rate of <strong>10Hz</strong>. Note that the serial port &amp; IMU can output data much faster, this 10Hz limitation arises from the speed and number of requests we can reasonably make to the HTTP server.</p>
+</body>
+</html>

@@ -1,7 +1,3 @@
-*.xml
-*.iml
-/.idea
-node_modules
 .pioenvs
 .piolibdeps
 .clang_complete
