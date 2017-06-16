@@ -223,4 +223,6 @@ Text GLabel 6100 4250 2    60   Input ~ 0
 Tx
 Text GLabel 6100 4350 2    60   Input ~ 0
 3.3V
+Text GLabel 5050 3200 0    60   Input ~ 0
+3.3V
 $EndSCHEMATC
