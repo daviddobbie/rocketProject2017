@@ -1,5 +1,4 @@
-// Sweep
-// by BARRAGAN <http://barraganstudio.com> 
+
 
 #include <Servo.h> 
  
@@ -23,6 +22,14 @@ Servo servoY;// y axis servo
 
 //double Xerror = 0;
 //double Yerror = 0;
+
+int Xcenter = 95;
+int Ycenter = 100;
+  
+int Xmax = 120;
+int Ymax = 125;
+int Xmin = 70;
+int Ymin = 75;
  
 void setup() 
 { 
@@ -32,41 +39,25 @@ void setup()
  
 void loop() 
 { 
-int Xcenter = 95;
-int Ycenter = 100;
-  
-int Xmax = 120;//120
-int Ymax = 125;//130
-int Xmin = 70;//60
-int Ymin = 75;//60
   
   servoX.write(Xmax);
-  servoY.write(Ymax); // Move both X and Y servos to 10 degrees
+  servoY.write(Ymax); // Move gyro to top left corner
   delay(1000);      // wait 1 sec
 
   servoX.write(Xmax);
-  servoY.write(Ymin); // Move both X and Y servos to 10 degrees
+  servoY.write(Ymin); // Move gyro to bottom left corner
   delay(1000);      // wait 1 sec
   
   servoX.write(Xmin);
-  servoY.write(Ymin); //move both X and Y servos to 170 degrees
+  servoY.write(Ymin); //move gyro to bottom right corner
   delay(1000);       //wait 1 sec
 
   servoX.write(Xmin);
-  servoY.write(Ymax); // Move both X and Y servos to 10 degrees
+  servoY.write(Ymax); // Move gyro to top right corner
   delay(1000);      // wait 1 sec
-  /*for(pos = 10; pos < 170; pos += 1)  // goes from 10 degrees to 170 degrees 
-  {                                  // in steps of 1 degree 
-    myservo.write(pos);              // tell servo to go to position in variable 'pos' 
-    delay(15);                       // waits 15ms for the servo to reach the position 
-  } 
-  for(pos = 180; pos>=1; pos-=1)     // goes from 180 degrees to 0 degrees 
-  {                                
-    myservo.write(pos);              // tell servo to go to position in variable 'pos' 
-    delay(15);                       // waits 15ms for the servo to reach the position 
-  } 
-  */
-} 
+}
+
+/*PID code for IMU implementation*/
 
 /*working variables*/
 //unsigned long lastTime;
