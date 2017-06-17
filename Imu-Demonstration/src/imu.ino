@@ -1,20 +1,38 @@
 /**
+ * Includes. Because we communicate to the MPU9250 over I2C, we need to include
+ * both Wire.h & I2Cdev.h for this to work.
+ */
+#include "Wire.h"
+#include "I2Cdev.h"
+#include <MPU9250.h>
+
+/**
  * Global & environmental variables are declared below for the express purpose
  * of allowing the devleper to tinker.
  */
 int BAUD_RATE = 9600;
 int SERIAL_OUTPUT_SPEED_IN_MS = 40;
-int ENVIRONMENT_IS_DEV = true;
+int ENVIRONMENT_IS_DEV = false;
+
+/**
+ * Define the chip used.
+ */
+ MPU9250 accelgyro;
 
 /**
  * Type definition of a struct that shall contain "raw" IMU sensor data with
- * little to no sanitization. It is currently expected that this data will be
- * floats for pitch, roll, and yaw.
+ * little to no sanitization. Data types for the sixs vars are of uint16_t
  */
 typedef struct ImuSensorDataStruct {
-    float pitch;
-    float roll;
-    float yaw;
+    int16_t pitch;
+    int16_t roll;
+    int16_t yaw;
+    int16_t accel_x;
+    int16_t accel_y;
+    int16_t accel_z;
+    int16_t m_x;
+    int16_t m_y;
+    int16_t m_z;
 } ImuSensorDataStruct;
 
 /**
@@ -26,13 +44,22 @@ typedef struct SanitizedImuDataStruct {
     String pitch;
     String roll;
     String yaw;
+    String accel_x;
+    String accel_y;
+    String accel_z;
 } SanitizedImuDataStruct;
 
 /**
- * Arduino setup, including beginning the serial output on 9600 baud.
+ * Arduino setup, including beginning the serial output on 9600 baud, and initialize
+ * an I2C connection.
  */
 void setup() {
+    Wire.begin();
     Serial.begin(BAUD_RATE);
+
+    accelgyro.initialize();
+    Serial.println("Testing device connections...");
+    Serial.println(accelgyro.testConnection() ? "MPU9250 connection successful" : "MPU9250 connection failed");
 }
 
 /**
@@ -69,26 +96,36 @@ void loop() {
 }
 
 /**
- * [fetchDataMock description]
- * @return [description]
+ * Generates randomized data for the purposes of testing this code stack without
+ * an IMU present.
+ *
+ * @return An ImuSensorDataStruct of fake values.
  */
 ImuSensorDataStruct fetchDataMock() {
-    return { random(361), random(361), random(361) };
+    return { random(361), random(361), random(361),
+        random(361), random(361), random(361) };
 }
 
 /**
+ * Retrieves a subset of data from the MPU9250 IMU.
  *
- * @return an IMU data struct containing pitch, roll, and yaw values.
+ * @return an IMU data struct containing actual pitch, roll, yaw, and acceleration
+ * values, represented as int16_t's.
  */
 ImuSensorDataStruct fetchData() {
-    //
+    ImuSensorDataStruct data = {};
+    accelgyro.getMotion9(&data.accel_x, &data.accel_y, &data.accel_z, &data.pitch,
+        &data.roll, &data.yaw, &data.m_x, &data.m_y, &data.m_z);
+
+    return data;
 }
 
 /**
  *
  */
 SanitizedImuDataStruct transformValues(ImuSensorDataStruct data) {
-    return { String(data.pitch), String(data.roll), String(data.yaw) };
+    return { String(data.pitch), String(data.roll), String(data.yaw),
+        String(data.accel_x), String(data.accel_y), String(data.accel_z) };
 }
 
 /**
@@ -99,6 +136,8 @@ SanitizedImuDataStruct transformValues(ImuSensorDataStruct data) {
  * the Serial monitor.
  */
 void outputToCereal(SanitizedImuDataStruct outputData) {
-    String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" + outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
+    String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" +
+    outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
+
     Serial.println(out);
 }
