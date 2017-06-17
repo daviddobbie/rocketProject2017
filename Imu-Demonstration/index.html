@@ -1,18 +1,34 @@
 <html>
 <head>
     <script src="/jquery.js"></script>
+    <script src="/three.min.js"></script>
     <script type="text/javascript">
+        /**
+         * [description]
+         * @param  {[type]} data [description]
+         * @return {[type]}      [description]
+         */
         var onSerialSuccess = function(data) {
+            globalData = data;
             document.getElementById("port").innerText = data.port;
             document.getElementById("pitch").innerText = data.imu.pitch;
             document.getElementById("roll").innerText = data.imu.roll;
             document.getElementById("yaw").innerText = data.imu.yaw;
         };
 
+        /**
+         * [description]
+         * @param  {[type]} response [description]
+         * @return {[type]}          [description]
+         */
         var onSerialError = function(response) {
             // TODO
         };
 
+        /**
+         * [description]
+         * @return {[type]} [description]
+         */
         $(document).ready(function() {
             setInterval(function() {
                 $.ajax({
@@ -23,6 +39,28 @@
                     error: onSerialError
                 });
             }, 100);
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, 640/480, 0.1, 1000);
+            var renderer = new THREE.WebGLRenderer({ alpha: true, canvas: document.getElementById("canvas") });
+            renderer.setSize(640, 480);
+
+            var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+            var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
+            var mat = new THREE.LineBasicMaterial( { color: 0x002C5D, linewidth: 2 } );
+            var wireframe = new THREE.LineSegments( geo, mat );
+            scene.add( wireframe );
+
+            camera.position.z = 2;
+
+            function render() {
+            	requestAnimationFrame( render );
+            	renderer.render( scene, camera );
+                wireframe.rotation.x = parseInt(globalData.imu.pitch);
+                wireframe.rotation.y = parseInt(globalData.imu.roll);
+                wireframe.rotation.z = parseInt(globalData.imu.yaw);
+            }
+            render();
         });
     </script>
     <style>
@@ -37,6 +75,10 @@
 
         p, ul, li, span {
             font-family:'Fira Code';
+        }
+
+        header {
+            margin-bottom:50px;
         }
 
         .header {
@@ -89,17 +131,50 @@
 
         .disclaimer {
             font-size:smaller;
+            clear:both;
+        }
+
+        .half-width {
+            float:left;
+            width:50%;
+        }
+
+        .large-display {
+            float:left;
+            width:33.3%;
+            text-align:right;
+        }
+
+        .large-display .value {
+            font-size:32px;
+            font-weight:left;
+            display:block;
         }
     </style>
 </head>
 <body>
-    <p class="header">Realtime IMU Demonstration</p>
-    <p class="port-output">Reading from port <span id="port"></span></p>
-    <ul>
-        <li>Pitch: <span id="pitch"></span>°</li>
-        <li>Roll: <span id="roll"></span>°</li>
-        <li>Yaw: <span id="yaw"></span>°</li>
-    </ul>
-    <p class="disclaimer">Refreshing at a rate of <strong>10Hz</strong>. Note that the serial port &amp; IMU can output data much faster, this 10Hz limitation arises from the speed and number of requests we can reasonably make to the HTTP server.</p>
+    <header>
+        <p class="header">Realtime IMU Demonstration</p>
+        <p class="port-output">Reading IMU data from port <span id="port"></span></p>
+    </header>
+    <div class="half-width">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="half-width">
+        <div class="large-display">
+            <span class="value"><span id="pitch"></span>°</span>
+            <span class="key">Pitch</span>
+        </div>
+        <div class="large-display">
+            <span class="value"><span id="roll"></span>°</span>
+            <span class="key">Roll</span>
+        </div>
+
+        <div class="large-display">
+            <span class="value"><span id="yaw"></span>°</span>
+            <span class="key">Yaw</span>
+        </div>
+    </div>
+    <p class="disclaimer">Refreshing at a rate of <strong>10Hz</strong>. <br/>Note that the serial port &amp; IMU can output data much faster, this 10Hz limitation arises from the speed and number of requests we can reasonably make to the HTTP server.</p>
 </body>
 </html>
