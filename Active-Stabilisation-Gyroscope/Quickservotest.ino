@@ -1,5 +1,4 @@
 
-
 #include <Servo.h> 
  
 Servo servoX;// create servo object to control a servo on the X axis 
@@ -23,13 +22,13 @@ Servo servoY;// y axis servo
 //double Xerror = 0;
 //double Yerror = 0;
 
-int Xcenter = 95;
-int Ycenter = 100;
+int Xcentre = 95;
+int Ycentre = 100;
   
 int Xmax = 120;
-int Ymax = 125;
+int Ymax = 135;
 int Xmin = 70;
-int Ymin = 75;
+int Ymin = 65;
  
 void setup() 
 { 
@@ -39,6 +38,45 @@ void setup()
  
 void loop() 
 { 
+  servoX.write(Xcentre);
+  servoY.write(Ycentre);
+  delay(500);
+
+  servoX.write(Xmax);
+  servoY.write(Ycentre); // Move gyro to right
+  delay(500);      // wait 500ms
+
+  servoX.write(Xcentre);
+  servoY.write(Ycentre); // Move gyro to centre
+  delay(500);      // wait 500ms
+  
+  servoX.write(Xcentre);
+  servoY.write(Ymax); //move gyro to top
+  delay(500);       //wait 500ms
+
+  servoX.write(Xcentre);
+  servoY.write(Ycentre); // Move gyro to centre
+  delay(500);      // wait 500ms
+  
+  servoX.write(Xmin);
+  servoY.write(Ycentre); // Move gyro to left
+  delay(500);      // wait 500ms
+
+  servoX.write(Xcentre);
+  servoY.write(Ycentre); // Move gyro to centre
+  delay(500);      // wait 500ms
+  
+  servoX.write(Xcentre);
+  servoY.write(Ymin); //move gyro to bottomr
+  delay(500);       //wait 500ms
+
+  servoX.write(Xcentre);
+  servoY.write(Ycentre); //move gyro to centre
+  delay(500);       //wait 500ms
+
+  servoX.write(Xmin);
+  servoY.write(Ymax); // Move gyro to top right corner
+  delay(1000);      // wait 1 sec 
   
   servoX.write(Xmax);
   servoY.write(Ymax); // Move gyro to top left corner
@@ -89,4 +127,3 @@ void loop()
 //   ki = Ki;
 //   kd = Kd;
 //}
-
