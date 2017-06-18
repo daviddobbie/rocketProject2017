@@ -56,9 +56,9 @@
             function render() {
             	requestAnimationFrame( render );
             	renderer.render( scene, camera );
-                wireframe.rotation.x = parseInt(globalData.imu.pitch);
-                wireframe.rotation.y = parseInt(globalData.imu.roll);
-                wireframe.rotation.z = parseInt(globalData.imu.yaw);
+                wireframe.rotation.x = parseFloat(globalData.imu.pitch).toFixed(2) *(Math.PI/180);
+                wireframe.rotation.y = parseFloat(globalData.imu.roll).toFixed(2) *(Math.PI/180);
+                wireframe.rotation.z = parseFloat(globalData.imu.yaw).toFixed(2) *(Math.PI/180);
             }
             render();
         });

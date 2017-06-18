@@ -12,7 +12,7 @@
  * of allowing the devleper to tinker.
  */
 int BAUD_RATE = 9600;
-int SERIAL_OUTPUT_SPEED_IN_MS = 40;
+int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 #define ENVIRONMENT_IS_DEV false
 #define AHRS true
 #define SerialDebug false
@@ -64,58 +64,39 @@ void setup() {
     accelgyro.initMPU9250();
     // Read the WHO_AM_I register, this is a good test of communication
     byte c = accelgyro.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
-    Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
-    Serial.print(" I should be "); Serial.println(0x73, HEX);
+    if (SerialDebug) {
+        Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
+        Serial.print(" I should be "); Serial.println(0x73, HEX);
+    }
 
-    if (c == 0x73) // WHO_AM_I should always be 0x68
-{
-  Serial.println("MPU9250 is online...");
+    if (c == 0x73 && SerialDebug) // WHO_AM_I should always be 0x68
+    {
+      Serial.println("MPU9250 is online...");
 
-  // Start by performing self test and reporting values
-  accelgyro.MPU9250SelfTest(accelgyro.SelfTest);
-  Serial.print("x-axis self test: acceleration trim within : ");
-  Serial.print(accelgyro.SelfTest[0],1); Serial.println("% of factory value");
-  Serial.print("y-axis self test: acceleration trim within : ");
-  Serial.print(accelgyro.SelfTest[1],1); Serial.println("% of factory value");
-  Serial.print("z-axis self test: acceleration trim within : ");
-  Serial.print(accelgyro.SelfTest[2],1); Serial.println("% of factory value");
-  Serial.print("x-axis self test: gyration trim within : ");
-  Serial.print(accelgyro.SelfTest[3],1); Serial.println("% of factory value");
-  Serial.print("y-axis self test: gyration trim within : ");
-  Serial.print(accelgyro.SelfTest[4],1); Serial.println("% of factory value");
-  Serial.print("z-axis self test: gyration trim within : ");
-  Serial.print(accelgyro.SelfTest[5],1); Serial.println("% of factory value");
+      // Start by performing self test and reporting values
+      accelgyro.MPU9250SelfTest(accelgyro.SelfTest);
+      Serial.print("x-axis self test: acceleration trim within : ");
+      Serial.print(accelgyro.SelfTest[0],1); Serial.println("% of factory value");
+      Serial.print("y-axis self test: acceleration trim within : ");
+      Serial.print(accelgyro.SelfTest[1],1); Serial.println("% of factory value");
+      Serial.print("z-axis self test: acceleration trim within : ");
+      Serial.print(accelgyro.SelfTest[2],1); Serial.println("% of factory value");
+      Serial.print("x-axis self test: gyration trim within : ");
+      Serial.print(accelgyro.SelfTest[3],1); Serial.println("% of factory value");
+      Serial.print("y-axis self test: gyration trim within : ");
+      Serial.print(accelgyro.SelfTest[4],1); Serial.println("% of factory value");
+      Serial.print("z-axis self test: gyration trim within : ");
+      Serial.print(accelgyro.SelfTest[5],1); Serial.println("% of factory value");
 
-  // Calibrate gyro and accelerometers, load biases in bias registers
-  accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
+      // Calibrate gyro and accelerometers, load biases in bias registers
+      accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
 
-  accelgyro.initMPU9250();
-  // Initialize device for active mode read of acclerometer, gyroscope, and
-  // temperature
-  Serial.println("MPU9250 initialized for active data mode....");
+      accelgyro.initMPU9250();
+      // Initialize device for active mode read of acclerometer, gyroscope, and
+      // temperature
+      Serial.println("MPU9250 initialized for active data mode....");
 
-  // Read the WHO_AM_I register of the magnetometer, this is a good test of
-  // communication
-  byte d = accelgyro.readByte(AK8963_ADDRESS, WHO_AM_I_AK8963);
-  Serial.print("AK8963 "); Serial.print("I AM "); Serial.print(d, HEX);
-  Serial.print(" I should be "); Serial.println(0x48, HEX);
-
-  // Get magnetometer calibration from AK8963 ROM
-  accelgyro.initAK8963(accelgyro.magCalibration);
-  // Initialize device for active mode read of magnetometer
-  Serial.println("AK8963 initialized for active data mode....");
-  if (SerialDebug)
-  {
-    //  Serial.println("Calibration values: ");
-    Serial.print("X-Axis sensitivity adjustment value ");
-    Serial.println(accelgyro.magCalibration[0], 2);
-    Serial.print("Y-Axis sensitivity adjustment value ");
-    Serial.println(accelgyro.magCalibration[1], 2);
-    Serial.print("Z-Axis sensitivity adjustment value ");
-    Serial.println(accelgyro.magCalibration[2], 2);
-  }
-
-} else {
+    } else if (SerialDebug) {
         Serial.println("Could not connect to MPU9250");
     }
 }
@@ -135,7 +116,7 @@ void setup() {
  * 3. Output the data to the serial monitor ready to be read elsewhere.
  */
 void loop() {
-    // Sample data every 50ms to start with.
+    // Sample data every 40ms to start with.
     delay(SERIAL_OUTPUT_SPEED_IN_MS);
 
     // Selection of data from either IMU or mock IMU facade here.
@@ -252,14 +233,6 @@ ImuSensorDataStruct fetchData() {
             Serial.print(" degrees/sec ");
             Serial.print("Z-gyro rate: "); Serial.print(accelgyro.gz, 3);
             Serial.println(" degrees/sec");
-
-            // Print mag values in degree/sec
-            Serial.print("X-mag field: "); Serial.print(accelgyro.mx);
-            Serial.print(" mG ");
-            Serial.print("Y-mag field: "); Serial.print(accelgyro.my);
-            Serial.print(" mG ");
-            Serial.print("Z-mag field: "); Serial.print(accelgyro.mz);
-            Serial.println(" mG");
           }
 
           accelgyro.count = millis();
@@ -285,33 +258,28 @@ ImuSensorDataStruct fetchData() {
             Serial.print(" gz = "); Serial.print( accelgyro.gz, 2);
             Serial.println(" deg/s");
 
-            Serial.print("mx = "); Serial.print( (int)accelgyro.mx );
-            Serial.print(" my = "); Serial.print( (int)accelgyro.my );
-            Serial.print(" mz = "); Serial.print( (int)accelgyro.mz );
-            Serial.println(" mG");
-
             Serial.print("q0 = "); Serial.print(*getQ());
             Serial.print(" qx = "); Serial.print(*(getQ() + 1));
             Serial.print(" qy = "); Serial.print(*(getQ() + 2));
             Serial.print(" qz = "); Serial.println(*(getQ() + 3));
           }
 
-    // Define output variables from updated quaternion---these are Tait-Bryan
-    // angles, commonly used in aircraft orientation. In this coordinate system,
-    // the positive z-axis is down toward Earth. Yaw is the angle between Sensor
-    // x-axis and Earth magnetic North (or true North if corrected for local
-    // declination, looking down on the sensor positive yaw is counterclockwise.
-    // Pitch is angle between sensor x-axis and Earth ground plane, toward the
-    // Earth is positive, up toward the sky is negative. Roll is angle between
-    // sensor y-axis and Earth ground plane, y-axis up is positive roll. These
-    // arise from the definition of the homogeneous rotation matrix constructed
-    // from quaternions. Tait-Bryan angles as well as Euler angles are
-    // non-commutative; that is, the get the correct orientation the rotations
-    // must be applied in the correct order which for this configuration is yaw,
-    // pitch, and then roll.
-    // For more see
-    // http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-    // which has additional links.
+            // Define output variables from updated quaternion---these are Tait-Bryan
+            // angles, commonly used in aircraft orientation. In this coordinate system,
+            // the positive z-axis is down toward Earth. Yaw is the angle between Sensor
+            // x-axis and Earth magnetic North (or true North if corrected for local
+            // declination, looking down on the sensor positive yaw is counterclockwise.
+            // Pitch is angle between sensor x-axis and Earth ground plane, toward the
+            // Earth is positive, up toward the sky is negative. Roll is angle between
+            // sensor y-axis and Earth ground plane, y-axis up is positive roll. These
+            // arise from the definition of the homogeneous rotation matrix constructed
+            // from quaternions. Tait-Bryan angles as well as Euler angles are
+            // non-commutative; that is, the get the correct orientation the rotations
+            // must be applied in the correct order which for this configuration is yaw,
+            // pitch, and then roll.
+            // For more see
+            // http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+            // which has additional links.
           accelgyro.yaw   = atan2(2.0f * (*(getQ()+1) * *(getQ()+2) + *getQ() *
                         *(getQ()+3)), *getQ() * *getQ() + *(getQ()+1) * *(getQ()+1)
                         - *(getQ()+2) * *(getQ()+2) - *(getQ()+3) * *(getQ()+3));
@@ -348,8 +316,7 @@ ImuSensorDataStruct fetchData() {
         }
       }
 
-    ImuSensorDataStruct data = { accelgyro.pitch, accelgyro.yaw, accelgyro.roll};
-    return data;
+    return {accelgyro.pitch, accelgyro.yaw, accelgyro.roll};
 }
 
 /**

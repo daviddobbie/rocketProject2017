@@ -33,10 +33,10 @@ app.get('/api/serial', (req, res) => {
     try {
         console.log(currentData);
         let imuData = JSON.parse(currentData);
-        res.json({
+        res.status(200).json({
             port: SERIAL_PORT_NAME,
             imu: imuData
-        }, 200);
+        });
     } catch(e) {
         res.send(e.message);
     }
