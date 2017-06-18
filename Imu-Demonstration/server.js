@@ -1,6 +1,8 @@
-const express = require('express');
 const SerialPort = require('serialport');
-const app = express();
+var express = require('express');
+var app = require('express')();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 const SERIAL_PORT_NAME = '/dev/cu.usbmodem1411';
 
@@ -10,8 +12,26 @@ const port = new SerialPort(SERIAL_PORT_NAME, {
 });
 
 var currentData;
+var socket;
+io.on('connection', socketConn => {
+    socket = socketConn;
+});
+
 port.on('data', data => {
     currentData = data.toString();
+    console.log(currentData);
+
+    try {
+        let imuData = JSON.parse(currentData);
+        if (socket) {
+            socket.emit('data', {
+                port: SERIAL_PORT_NAME,
+                imu: imuData
+            });
+        }
+    } catch(e) {
+        console.log(e.message);
+    }
 });
 
 /**
@@ -29,22 +49,6 @@ app.get('/', (req, res) => {
 /**
  *
  */
-app.get('/api/serial', (req, res) => {
-    try {
-        console.log(currentData);
-        let imuData = JSON.parse(currentData);
-        res.status(200).json({
-            port: SERIAL_PORT_NAME,
-            imu: imuData
-        });
-    } catch(e) {
-        res.send(e.message);
-    }
-});
-
-/**
- *
- */
-app.listen(3000, () => {
+server.listen(3000, () => {
     console.log('listening');
 });
