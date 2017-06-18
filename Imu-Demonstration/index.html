@@ -2,44 +2,32 @@
 <head>
     <script src="/jquery.js"></script>
     <script src="/three.min.js"></script>
-    <script type="text/javascript">
-        /**
-         * [description]
-         * @param  {[type]} data [description]
-         * @return {[type]}      [description]
-         */
-        var onSerialSuccess = function(data) {
-            globalData = data;
-            document.getElementById("port").innerText = data.port;
-            document.getElementById("pitch").innerText = data.imu.pitch;
-            document.getElementById("roll").innerText = data.imu.roll;
-            document.getElementById("yaw").innerText = data.imu.yaw;
-        };
+    <script src="/socket.io.js"></script>
+    <script>
+      var socket = io('http://localhost:3000');
+      var iter = 0;
+      var globalData;
+      
+      $(document).ready(function() {
+          var port = document.getElementById("port");
+          var pitch = document.getElementById("pitch");
+          var roll = document.getElementById("roll");
+          var yaw = document.getElementById("yaw");
 
-        /**
-         * [description]
-         * @param  {[type]} response [description]
-         * @return {[type]}          [description]
-         */
-        var onSerialError = function(response) {
-            // TODO
-        };
+          socket.on('data', function (data) {
+              globalData = data;
+              port.innerText = data.port;
+              pitch.innerText = data.imu.pitch;
+              roll.innerText = data.imu.roll;
+              yaw.innerText = data.imu.yaw;
+          });
+      });
 
         /**
          * [description]
          * @return {[type]} [description]
          */
         $(document).ready(function() {
-            setInterval(function() {
-                $.ajax({
-                    url: '/api/serial',
-                    method: 'GET',
-                    dataType: "json",
-                    success: onSerialSuccess,
-                    error: onSerialError
-                });
-            }, 100);
-
             var scene = new THREE.Scene();
             var camera = new THREE.PerspectiveCamera(75, 640/480, 0.1, 1000);
             var renderer = new THREE.WebGLRenderer({ alpha: true, canvas: document.getElementById("canvas"), antialias: true });
@@ -173,18 +161,6 @@
         <div class="large-display">
             <span class="value"><span id="yaw"></span>°</span>
             <span class="key">Yaw</span>
-        </div>
-        <div class="small-display">
-            <span class="value"><span id="accel_x"></span></span>
-            <span class="key">Accel_X</span>
-        </div>
-        <div class="small-display">
-            <span class="value"><span id="accel_y"></span></span>
-            <span class="key">Accel_Y</span>
-        </div>
-        <div class="small-display">
-            <span class="value"><span id="accel_z"></span></span>
-            <span class="key">Accel_Z</span>
         </div>
     </div>
     <p class="disclaimer">Refreshing at a rate of <strong>10Hz</strong>. <br/>Note that the serial port &amp; IMU can output data much faster, this 10Hz limitation arises from the speed and number of requests we can reasonably make to the HTTP server.</p>
