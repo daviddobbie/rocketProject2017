@@ -342,7 +342,6 @@ ImuSensorDataStruct fetchData() {
             Serial.println(" Hz");
           }
 
-
           accelgyro.count = millis();
           accelgyro.sumCount = 0;
           accelgyro.sum = 0;
