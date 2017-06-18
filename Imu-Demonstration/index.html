@@ -7,20 +7,21 @@
       var socket = io('http://localhost:3000');
       var iter = 0;
       var globalData;
-      
+
       $(document).ready(function() {
           var port = document.getElementById("port");
           var pitch = document.getElementById("pitch");
           var roll = document.getElementById("roll");
           var yaw = document.getElementById("yaw");
 
-          socket.on('data', function (data) {
-              globalData = data;
-              port.innerText = data.port;
-              pitch.innerText = data.imu.pitch;
-              roll.innerText = data.imu.roll;
-              yaw.innerText = data.imu.yaw;
+          socket.on('data', function(data) {
+             globalData = data;
+             port.innerHTML = data.port;
+             pitch.innerHTML = data.imu.pitch;
+             roll.innerHTML = data.imu.roll;
+             yaw.innerHTML = data.imu.yaw;
           });
+
       });
 
         /**

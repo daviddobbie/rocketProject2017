@@ -12,10 +12,10 @@
  * of allowing the devleper to tinker.
  */
 int BAUD_RATE = 9600;
-int SERIAL_OUTPUT_SPEED_IN_MS = 10;
+int SERIAL_OUTPUT_SPEED_IN_MS = 100;
 #define ENVIRONMENT_IS_DEV false
-#define AHRS true
-#define SerialDebug false
+#define AHRS false
+#define SerialDebug true
 
 /**
  * Define the chip used.
@@ -207,24 +207,24 @@ ImuSensorDataStruct fetchData() {
       // modified to allow any convenient orientation convention. This is ok by
       // aircraft orientation standards! Pass gyro rate as rad/s
     //  MadgwickQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f,  my,  mx, mz);
-      MahonyQuaternionUpdate(accelgyro.ax, accelgyro.ay, accelgyro.az, accelgyro.gx*DEG_TO_RAD,
+      MadgwickQuaternionUpdate(accelgyro.ax, accelgyro.ay, accelgyro.az, accelgyro.gx*DEG_TO_RAD,
                              accelgyro.gy*DEG_TO_RAD, accelgyro.gz*DEG_TO_RAD, accelgyro.my,
                              accelgyro.mx, accelgyro.mz, accelgyro.deltat);
 
       if (!AHRS)
       {
         accelgyro.delt_t = millis() - accelgyro.count;
-        if (accelgyro.delt_t > 500)
+        if (accelgyro.delt_t > SERIAL_OUTPUT_SPEED_IN_MS)
         {
           if(SerialDebug)
           {
             // Print acceleration values in milligs!
-            Serial.print("X-acceleration: "); Serial.print(1000*accelgyro.ax);
-            Serial.print(" mg ");
-            Serial.print("Y-acceleration: "); Serial.print(1000*accelgyro.ay);
-            Serial.print(" mg ");
-            Serial.print("Z-acceleration: "); Serial.print(1000*accelgyro.az);
-            Serial.println(" mg ");
+            //Serial.print("X-acceleration: "); Serial.print(1000*accelgyro.ax);
+            //Serial.print(" mg ");
+            //Serial.print("Y-acceleration: "); Serial.print(1000*accelgyro.ay);
+            //Serial.print(" mg ");
+            //Serial.print("Z-acceleration: "); Serial.print(1000*accelgyro.az);
+            //Serial.println(" mg ");
 
             // Print gyro values in degree/sec
             Serial.print("X-gyro rate: "); Serial.print(accelgyro.gx, 3);
@@ -243,8 +243,7 @@ ImuSensorDataStruct fetchData() {
         // Serial print and/or display at 0.5 s rate independent of data rates
         accelgyro.delt_t = millis() - accelgyro.count;
 
-        // update LCD once per half-second independent of read rate
-        if (accelgyro.delt_t > 500)
+        if (accelgyro.delt_t > SERIAL_OUTPUT_SPEED_IN_MS)
         {
           if(SerialDebug)
           {
@@ -290,10 +289,10 @@ ImuSensorDataStruct fetchData() {
                         - *(getQ()+2) * *(getQ()+2) + *(getQ()+3) * *(getQ()+3));
           accelgyro.pitch *= RAD_TO_DEG;
           accelgyro.yaw   *= RAD_TO_DEG;
-          // Declination of SparkFun Electronics (40°05'26.6"N 105°11'05.9"W) is
-          // 	8° 30' E  ± 0° 21' (or 8.5°) on 2016-07-19
-          // - http://www.ngdc.noaa.gov/geomag-web/#declination
-          accelgyro.yaw   -= 8.5;
+          // Declination of Victoria University (41.2904° S 174.7687° E) is
+          //  22.53E  ± 0.34° (or 22.5°) on 2017-06
+          // -
+          accelgyro.yaw   -= 22.5;
           accelgyro.roll  *= RAD_TO_DEG;
 
           if(SerialDebug)
@@ -337,5 +336,5 @@ void outputToCereal(SanitizedImuDataStruct outputData) {
     String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" +
     outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
 
-    Serial.println(out);
+    //Serial.println(out);
 }
