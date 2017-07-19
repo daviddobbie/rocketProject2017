@@ -1,7 +1,7 @@
-The schematic is done but includes GPS which I understand has been taken out of the recovery-only rocket.
+Schematic complete.
 
 You will need to install the teensy schematic library at https://github.com/XenGi/teensy_library
 
-Strongly recommend this KiCad quickstart video: https://www.youtube.com/watch?v=zK3rDhJqMu0
+Layout rev 2 complete.
 
-For the most part the main thing is getting the actual layout done.
+Strongly recommend this KiCad quickstart video: https://www.youtube.com/watch?v=zK3rDhJqMu0
