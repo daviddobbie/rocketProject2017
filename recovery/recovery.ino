@@ -4,8 +4,8 @@
 #define RF
 
 #define RFM95_CS 10
-#define RFM95_RST 9
-#define RFM95_INT 2
+#define RFM95_RST 0
+#define RFM95_INT 1
  
 // Specfies the frequency transmitted from the RFM96W radio
 #define RF95_FREQ 434.0
@@ -13,9 +13,9 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-int piezo = 12;
+int piezo = 18;
 int led = 13;
-int readPin = 28;
+int readPin = 5;
 /**
  *
  */
@@ -44,7 +44,8 @@ void loop() {
   
   int value = analogRead(readPin);
   Serial.println(value);
-
+  String msg = "GPS Coords";
+  transmitRadio(msg);
 
 }
 
@@ -80,7 +81,7 @@ float getAccuracy(){
 
 /*
  * transmits the radio signal from the Teensy. This will be picked up by the SDR on the 
- * laptop
+ * laptop or to another Teensy radio.
  */
 void transmitRadio(String message){
   int msgLength = message.length();
@@ -89,11 +90,6 @@ void transmitRadio(String message){
     
   delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
   Serial.println("Transmitting..."); // Send a message to rf95_server
-  
-  
-  //itoa(packetnum++, msgChar+13, 10);
-  //Serial.print("Sending "); Serial.println(msgChar);
-  //msgChar[19] = 0;
   
   Serial.println("Sending..."); delay(10);
   rf95.send((uint8_t *)msgChar, 20);
