@@ -1,7 +1,11 @@
 
-#include <RH_RF95.h> // this uses the radiohead arduino library http://www.airspayce.com/mikem/arduino/RadioHead/classRH__RF95.html
 
-#define RF
+
+#include <RH_RF95.h> // this uses the radiohead arduino library http://www.airspayce.com/mikem/arduino/RadioHead/classRH__RF95.html
+#include <SD.h>
+#include <SPI.h>
+#include <TimeLib.h>
+
 
 #define RFM95_CS 10
 #define RFM95_RST 0
@@ -12,10 +16,15 @@
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
+// sets the sd card to be the one built into the Teensy 3.6
+const int dataLogChipSelect = BUILTIN_SDCARD;
 
 int piezo = 18;
 int led = 13;
 int readPin = 5;
+
+File dataFile;
+
 /**
  *
  */
@@ -30,6 +39,7 @@ void setup() {
     Serial.begin(9600);
 
     radioSetup();
+    setupCard();
 
     
 }
@@ -39,13 +49,14 @@ void setup() {
  */
 void loop() {
   buzzer();
-  digitalWrite(led,HIGH); // tests that the controller board is operating
- 
+  //digitalWrite(led,HIGH); // tests that the controller board is operating
+
   
-  int value = analogRead(readPin);
-  Serial.println(value);
-  String msg = "GPS Coords";
+  String gpsCoords = "00_00_00_00";
+  String msg = "g" + gpsCoords + "t" + currentTime(); 
+  writeToSD(msg);
   transmitRadio(msg);
+
 
 }
 
@@ -87,7 +98,8 @@ void transmitRadio(String message){
   int msgLength = message.length();
   char msgChar[msgLength];
   message.toCharArray(msgChar, msgLength+1); // converts the message into the appropriate char array for transmission
-    
+
+  Serial.println("Message: "+ message);
   delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
   Serial.println("Transmitting..."); // Send a message to rf95_server
   
@@ -96,6 +108,7 @@ void transmitRadio(String message){
  
   Serial.println("Waiting for packet to complete..."); delay(10);
   rf95.waitPacketSent();
+  Serial.println("Sent");
 }
 /*
  * receives the radio signal from a teensy. This allows for data communication 
@@ -146,11 +159,60 @@ void radioSetup(){
 
     rf95.setTxPower(23, false);
 }
-
+/*
+ * Sets up the SD card to record data on it
+ */
+void setupCard(){
+   Serial.print("Initializing SD card...");
+  
+  // see if the card is present and can be initialized:
+  if (!SD.begin(dataLogChipSelect)) {
+    Serial.println("Card failed, or not present");
+    // don't do anything more:
+    return;
+  }
+  Serial.println("card initialized."); 
+  return;
+}
 struct GPSDataStruct{
   
 };
+/**
+ * this sends a string from where it is called and records it on the SD card
+ */
+void writeToSD(String str){
+  dataFile = SD.open("datalog.txt", FILE_WRITE);
+  // if the file is available, write to it:
+  if (dataFile) {
+    dataFile.println(str);
+    dataFile.close();
+    // print to the serial port too:
+    Serial.println("Writing to storage...");
+  }  
+  // if the file isn't open, pop up an error:
+  else {
+    Serial.println("Error writing to storage");
+  } 
+}
 
+/**
+ * gets the time string set up to be logged
+ */
+String currentTime(){
+   String t;
+   t += hour();
+   t += printDigits(minute());
+   t += printDigits(second());
+   return t;
+}
+
+String printDigits(int digits){ // taken from example teensy time
+  String str = ":";
+  if(digits < 10)
+    str += "0";
+  str += digits;
+  return str;
+}
 struct GPSVelocityStruct{
   
 };
