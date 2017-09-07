@@ -14,8 +14,8 @@
 int BAUD_RATE = 9600;
 int SERIAL_OUTPUT_SPEED_IN_MS = 100;
 #define ENVIRONMENT_IS_DEV false
-#define AHRS false
-#define SerialDebug true
+#define AHRS true
+#define SerialDebug false
 
 /**
  * Define the chip used.
@@ -37,6 +37,16 @@ typedef struct ImuSensorDataStruct {
 } ImuSensorDataStruct;
 
 /**
+ * Type definition of a struct that shall contain acceleration values of the
+ *
+ */
+typedef struct ExtendedSensorDataStruct {
+    float aX;
+    float aY;
+    float aZ;
+}
+
+/**
  * A sanitized IMU sensor data struct that contains all values cast into Strings
  * for the express purpose of allowing a data output function to concatenate
  * Strings together to form an output that is acceptable for Serial.println.
@@ -46,6 +56,8 @@ typedef struct SanitizedImuDataStruct {
     String roll;
     String yaw;
 } SanitizedImuDataStruct;
+
+ImuSensorDataStruct currentVals = {};
 
 /**
  * Arduino setup, including beginning the serial output on 9600 baud, and initialize
@@ -94,7 +106,7 @@ void setup() {
       accelgyro.initMPU9250();
       // Initialize device for active mode read of acclerometer, gyroscope, and
       // temperature
-      Serial.println("MPU9250 initialized for active data mode....");
+      Serial.println("MPU9250 in active data mode...");
 
     } else if (SerialDebug) {
         Serial.println("Could not connect to MPU9250");
@@ -102,13 +114,6 @@ void setup() {
 }
 
 /**
- * Arduino loop, execute this code every SERIAL_OUTPUT_SPEED_IN_MS. The
- * execution pipeline is as follows:
- *
- * 1. Firstly create an ImuSensorDataStruct, and depending on whether the
- * environment we are running in is dev, retrieve data from the IMU into the
- * struct, or retrieve randomized garbage data from a facade representing a mock
- * IMU.
  *
  * 2. Sanitize and transform the raw values from the IMU into data that is
  * tolerable for the serial monitor.
@@ -147,7 +152,7 @@ ImuSensorDataStruct fetchDataMock() {
 /**
  * Retrieves a subset of data from the MPU9250 IMU.
  *
- * @return an IMU data struct containing actual pitch, roll, yaw, and acceleration
+ * @returns an IMU data struct containing actual pitch, roll, yaw, and acceleration
  * values, represented as int16_t's.
  */
 ImuSensorDataStruct fetchData() {
@@ -336,5 +341,5 @@ void outputToCereal(SanitizedImuDataStruct outputData) {
     String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" +
     outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
 
-    //Serial.println(out);
+    Serial.println(out);
 }
