@@ -5,11 +5,16 @@
 #include <SD.h>
 #include <SPI.h>
 #include <TimeLib.h>
+#include <TinyGPS++.h>
+#include <i2c_t3.h>
 
 
 #define RFM95_CS 10
 #define RFM95_RST 0
 #define RFM95_INT 1
+
+#define GPS_SDA 38
+#define GPS_SCL 37
  
 // Specfies the frequency transmitted from the RFM96W radio
 #define RF95_FREQ 434.0
@@ -24,7 +29,7 @@ int led = 13;
 int readPin = 5;
 
 File dataFile;
-
+TinyGPSPlus gps;
 /**
  *
  */
@@ -65,9 +70,7 @@ void loop() {
  */
 void buzzer() {
     tone(piezo, 1275);
-    delay(1000);
-    tone(piezo, 900);
-    delay(1000);
+
 }
 
 
@@ -100,7 +103,7 @@ void transmitRadio(String message){
   message.toCharArray(msgChar, msgLength+1); // converts the message into the appropriate char array for transmission
 
   Serial.println("Message: "+ message);
-  delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
+  delay(50); // Wait 1 second between transmits, could also 'sleep' here!
   Serial.println("Transmitting..."); // Send a message to rf95_server
   
   Serial.println("Sending..."); delay(10);
