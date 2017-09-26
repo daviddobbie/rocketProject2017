@@ -4,7 +4,7 @@
  */
 #include "Wire.h"
 #include "I2Cdev.h"
-#include <MPU9250.h>
+#include "MPU9250.h"
 #include "quaternionFilters.h"
 #include <Servo.h>
 
@@ -13,155 +13,131 @@
  * of allowing the devleper to tinker.
  */
 int BAUD_RATE = 9600;
-int SERIAL_OUTPUT_SPEED_IN_MS = 10;
+int SERIAL_OUTPUT_SPEED_IN_MS = 100;
 #define ENVIRONMENT_IS_DEV false
-#define AHRS false
-#define SerialDebug true
+#define AHRS true
+#define SerialDebug false
 
 /**
  * Define the chip used.
  */
-MPU9250 accelgyro;
+ MPU9250 accelgyro;
 
-int intPin = 12;
-int myLed = 13;
+ int intPin = 12;
+ int myLed = 13;
 
+ /**
+  * Type definition of a struct that shall contain "raw" IMU sensor data with
+  * little to no sanitization. Data types for the sixs vars are of uint16_t
+  */
+ typedef struct ImuSensorDataStruct {
+     float pitch;
+     float roll;
+     float yaw;
+ } ImuSensorDataStruct;
+
+ /**
+  * A sanitized IMU sensor data struct that contains all values cast into Strings
+  * for the express purpose of allowing a data output function to concatenate
+  * Strings together to form an output that is acceptable for Serial.println.
+  */
+ typedef struct SanitizedImuDataStruct {
+     String pitch;
+     String roll;
+     String yaw;
+ } SanitizedImuDataStruct;
+
+
+ Servo servoX;// create servo object to control a servo on the X axis
+ Servo servoY;// y axis servo
+ int servoXpin = 23;
+ int servoYpin = 14;
+ // a maximum of eight servo objects can be created
+
+ int Xcentre = 95;
+ int Ycentre = 100;
+
+ int Xmax = 120;
+ int Ymax = 135;
+ int Xmin = 70;
+ int Ymin = 65;
+
+ float XinCurrent, XoutCurrent, XinPrevious, XoutPrevious = 0;
+
+ float YinCurrent, YoutCurrent, YinPrevious, YoutPrevious = 0;
 
 /**
- * Type definition of a struct that shall contain "raw" IMU sensor data with
- * little to no sanitization. Data types for the sixs vars are of uint16_t
+ * Arduino setup, including beginning the serial output on 9600 baud, and initialize
+ * an I2C connection.
  */
-typedef struct ImuSensorDataStruct {
-    float pitch;
-    float roll;
-    float yaw;
-} ImuSensorDataStruct;
+void setup() {
+    Wire.begin();
+    Serial.begin(BAUD_RATE);
 
-/**
- * A sanitized IMU sensor data struct that contains all values cast into Strings
- * for the express purpose of allowing a data output function to concatenate
- * Strings together to form an output that is acceptable for Serial.println.
- */
-typedef struct SanitizedImuDataStruct {
-    String pitch;
-    String roll;
-    String yaw;
-} SanitizedImuDataStruct;
+    //Setup servo pins
+    servoX.attach(servoXpin);  // attaches servoX on pin 23
+    servoY.attach(servoYpin);  // attaches servoY on pin 14
 
-Servo servoX;// create servo object to control a servo on the X axis
-Servo servoY;// y axis servo
-int servoXpin = 23;
-int servoYpin = 14;
-// a maximum of eight servo objects can be created
+    // Set up the interrupt pin for IMU, its set as active high, push-pull
+    pinMode(intPin, INPUT);
+    digitalWrite(intPin, LOW);
+    pinMode(myLed, OUTPUT);
+    digitalWrite(myLed, HIGH);
 
-int Xcentre = 95;
-int Ycentre = 100;
-
-int Xmax = 120;
-int Ymax = 135;
-int Xmin = 70;
-int Ymin = 65;
-
-float XinCurrent, XoutCurrent, XinPrevious, XoutPrevious = 0;
-
-float YinCurrent, YoutCurrent, YinPrevious, YoutPrevious = 0;
-
-/**
-* Arduino setup, including beginning the serial output on 9600 baud, and initialize
-* an I2C connection.
-*/
-void setup()
-{
-  Wire.begin();
-  Serial.begin(BAUD_RATE);
-
-  setUpIMU();
-
-  servoX.attach(servoXpin);  // attaches servoX on pin 23
-  servoY.attach(servoYpin);  // attaches servoY on pin 14
-}
-
-void loop()
-{
-  // Sample data every 40ms to start with.
-  delay(SERIAL_OUTPUT_SPEED_IN_MS);
-  // Selection of data from either IMU or mock IMU facade here.
-  ImuSensorDataStruct IMUdata;
-  IMUdata = fetchData();
-
-  // Sanitize
-  SanitizedImuDataStruct outputData = transformValues(data);
-  outputToCereal(outputData);
-
-  //get current value of motor angle
-  XinCurrent = IMUdata.pitch;
-  YinCurrent = IMUdata.roll;
-
-  //apply lead controller
-  XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
-  YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
-
-  servoX.write(XoutCurrent);
-  servoY.write(YoutCurrent);
-
-  //Set previous values for next loop
-  XoutPrevious = XoutCurrent;
-  YoutPrevious = YoutCurrent;
-  XinPrevious = XinCurrent;
-  YinPrevious = YinCurrent;
-}
-
-void setUpIMU(){
-  // Set up the interrupt pin, its set as active high, push-pull
-  pinMode(intPin, INPUT);
-  digitalWrite(intPin, LOW);
-  pinMode(myLed, OUTPUT);
-  digitalWrite(myLed, HIGH);
-
-  accelgyro.initMPU9250();
-  // Read the WHO_AM_I register, this is a good test of communication
-  byte c = accelgyro.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
-  if (SerialDebug) {
-      Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
-      Serial.print(" I should be "); Serial.println(0x73, HEX);
-  }
-
-  if (c == 0x73 && SerialDebug) // WHO_AM_I should always be 0x68
-  {
-    Serial.println("MPU9250 is online...");
-
-    // Start by performing self test and reporting values
-    accelgyro.MPU9250SelfTest(accelgyro.SelfTest);
-    Serial.print("x-axis self test: acceleration trim within : ");
-    Serial.print(accelgyro.SelfTest[0],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: acceleration trim within : ");
-    Serial.print(accelgyro.SelfTest[1],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: acceleration trim within : ");
-    Serial.print(accelgyro.SelfTest[2],1); Serial.println("% of factory value");
-    Serial.print("x-axis self test: gyration trim within : ");
-    Serial.print(accelgyro.SelfTest[3],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: gyration trim within : ");
-    Serial.print(accelgyro.SelfTest[4],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: gyration trim within : ");
-    Serial.print(accelgyro.SelfTest[5],1); Serial.println("% of factory value");
-
-    // Calibrate gyro and accelerometers, load biases in bias registers
     accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
-
     accelgyro.initMPU9250();
-    // Initialize device for active mode read of acclerometer, gyroscope, and
-    // temperature
-    Serial.println("MPU9250 initialized for active data mode....");
 
-  } else if (SerialDebug) {
-      Serial.println("Could not connect to MPU9250");
-  }
+    if (SerialDebug) {
+        // Read the WHO_AM_I register, this is a good test of communication
+        byte c = accelgyro.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
+        Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
+        Serial.print(" I should be "); Serial.println(0x71, HEX);
+    }
 }
+
+/**
+ *
+ */
+void loop() {
+    // Sample data at 100Hz
+    delay(SERIAL_OUTPUT_SPEED_IN_MS);
+
+    // Selection of data from either IMU or mock IMU facade here.
+    ImuSensorDataStruct IMUdata;
+    IMUdata = fetchData();
+
+    if(SerialDebug)
+    {
+      SanitizedImuDataStruct outputData = transformValues(IMUdata);
+      outputToCereal(outputData);
+    }
+    else
+    {
+      //get current value of motor angle
+      XinCurrent = IMUdata.pitch;
+      YinCurrent = IMUdata.roll;
+
+      //apply lead controller
+      XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
+      YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
+
+      //write values to servos
+      servoX.write(XoutCurrent);
+      servoY.write(YoutCurrent);
+
+      //Set previous values for next loop
+      XoutPrevious = XoutCurrent;
+      YoutPrevious = YoutCurrent;
+      XinPrevious = XinCurrent;
+      YinPrevious = YinCurrent;
+    }
+}
+
 
 /**
  * Retrieves a subset of data from the MPU9250 IMU.
  *
- * @return an IMU data struct containing actual pitch, roll, yaw, and acceleration
+ * @returns an IMU data struct containing actual pitch, roll, yaw, and acceleration
  * values, represented as int16_t's.
  */
 ImuSensorDataStruct fetchData() {
@@ -350,7 +326,5 @@ void outputToCereal(SanitizedImuDataStruct outputData) {
     String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" +
     outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
 
-    //Serial.println(out);
+    Serial.println(out);
 }
-
-
