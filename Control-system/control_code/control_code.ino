@@ -6,14 +6,14 @@
 #include "I2Cdev.h"
 #include <MPU9250.h>
 #include "quaternionFilters.h"
-#include <Servo.h> 
+#include <Servo.h>
 
 /**
  * Global & environmental variables are declared below for the express purpose
  * of allowing the devleper to tinker.
  */
 int BAUD_RATE = 9600;
-int SERIAL_OUTPUT_SPEED_IN_MS = 100;
+int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 #define ENVIRONMENT_IS_DEV false
 #define AHRS false
 #define SerialDebug true
@@ -47,46 +47,42 @@ typedef struct SanitizedImuDataStruct {
     String roll;
     String yaw;
 } SanitizedImuDataStruct;
- 
-Servo servoX;// create servo object to control a servo on the X axis 
+
+Servo servoX;// create servo object to control a servo on the X axis
 Servo servoY;// y axis servo
 int servoXpin = 23;
 int servoYpin = 14;
-// a maximum of eight servo objects can be created 
+// a maximum of eight servo objects can be created
 
 int Xcentre = 95;
 int Ycentre = 100;
-  
+
 int Xmax = 120;
 int Ymax = 135;
 int Xmin = 70;
 int Ymin = 65;
 
-unsigned long lastTime, currentTime = 0;
-double timeChange;
-double Xerr, XerrSum, XdErr, XlastErr = 0;
-double Yerr, YerrSum, YdErr, YlastErr = 0;
-double Kp = 1;
-double Ki = 0;
-double Kd = 0;
+float XinCurrent, XoutCurrent, XinPrevious, XoutPrevious = 0;
+
+float YinCurrent, YoutCurrent, YinPrevious, YoutPrevious = 0;
 
 /**
 * Arduino setup, including beginning the serial output on 9600 baud, and initialize
 * an I2C connection.
 */
-void setup() 
-{ 
+void setup()
+{
   Wire.begin();
   Serial.begin(BAUD_RATE);
 
   setUpIMU();
-  
-  servoX.attach(servoXpin);  // attaches servoX on pin 23 
+
+  servoX.attach(servoXpin);  // attaches servoX on pin 23
   servoY.attach(servoYpin);  // attaches servoY on pin 14
-} 
- 
-void loop() 
-{ 
+}
+
+void loop()
+{
   // Sample data every 40ms to start with.
   delay(SERIAL_OUTPUT_SPEED_IN_MS);
   // Selection of data from either IMU or mock IMU facade here.
@@ -97,18 +93,22 @@ void loop()
   SanitizedImuDataStruct outputData = transformValues(data);
   outputToCereal(outputData);
 
-  currentTime = millis();
-  timeChange = 1.0*currentTime - 1.0*lastTime;
-  
-  Xerr = IMUdata.pitch;
-  Yerr = IMUdata.yaw;
-  XerrSum += (Xerr*timeChange);
-  YerrSum += (Yerr*timeChange);
-  XdErr = (Xerr - XlastErr)/timeChange;
-  YdErr = (Yerr - YlastErr)/timeChange;
+  //get current value of motor angle
+  XinCurrent = IMUdata.pitch;
+  YinCurrent = IMUdata.roll;
 
-  servoX.write(Xcentre + (Kp*Xerr + Ki*XerrSum + Kd*XdErr));
-  servoY.write(Ycentre + (Kp*Yerr + Ki*YerrSum + Kd*YdErr));
+  //apply lead controller
+  XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
+  YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
+
+  servoX.write(XoutCurrent);
+  servoY.write(YoutCurrent);
+
+  //Set previous values for next loop
+  XoutPrevious = XoutCurrent;
+  YoutPrevious = YoutCurrent;
+  XinPrevious = XinCurrent;
+  YinPrevious = YinCurrent;
 }
 
 void setUpIMU(){
@@ -352,7 +352,5 @@ void outputToCereal(SanitizedImuDataStruct outputData) {
 
     //Serial.println(out);
 }
-
-
 
 
