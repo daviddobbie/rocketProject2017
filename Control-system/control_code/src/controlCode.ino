@@ -13,7 +13,7 @@
  * of allowing the devleper to tinker.
  */
 int BAUD_RATE = 9600;
-int SERIAL_OUTPUT_SPEED_IN_MS = 100;
+int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 #define ENVIRONMENT_IS_DEV false
 #define AHRS true
 #define SerialDebug false
@@ -54,13 +54,13 @@ int SERIAL_OUTPUT_SPEED_IN_MS = 100;
  int servoYpin = 14;
  // a maximum of eight servo objects can be created
 
- int Xcentre = 95;
- int Ycentre = 100;
+ int Xcentre = 86;
+ int Ycentre = 135;
 
- int Xmax = 120;
- int Ymax = 135;
- int Xmin = 70;
- int Ymin = 65;
+ float servoXratio = 1;
+ float servoYratio = 1;
+
+ float servoOffsetRatio = 1.3;
 
  float XinCurrent, XoutCurrent, XinPrevious, XoutPrevious = 0;
 
@@ -87,7 +87,7 @@ void setup() {
     accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
     accelgyro.initMPU9250();
 
-    if (SerialDebug) {
+    if (true) {
         // Read the WHO_AM_I register, this is a good test of communication
         byte c = accelgyro.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
         Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
@@ -106,31 +106,31 @@ void loop() {
     ImuSensorDataStruct IMUdata;
     IMUdata = fetchData();
 
-    if(SerialDebug)
-    {
+    //if(SerialDebug)
+    //{
       SanitizedImuDataStruct outputData = transformValues(IMUdata);
       outputToCereal(outputData);
-    }
-    else
-    {
+    //}
+    //else
+    //{
       //get current value of motor angle
       XinCurrent = IMUdata.pitch;
-      YinCurrent = IMUdata.roll;
+      YinCurrent = IMUdata.yaw;
 
       //apply lead controller
       XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
       YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
 
       //write values to servos
-      servoX.write(XoutCurrent);
-      servoY.write(YoutCurrent);
+      servoX.write(Xcentre + XoutCurrent*servoOffsetRatio);
+      servoY.write(Ycentre + YoutCurrent*servoOffsetRatio);
 
       //Set previous values for next loop
       XoutPrevious = XoutCurrent;
       YoutPrevious = YoutCurrent;
       XinPrevious = XinCurrent;
       YinPrevious = YinCurrent;
-    }
+  //  }
 }
 
 

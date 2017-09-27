@@ -27,7 +27,7 @@
 // Devices with higher bit address might not be seen properly.
 //
 
-/*#include <Wire.h>
+#include <Wire.h>
 
 
 void setup()
@@ -80,4 +80,4 @@ void loop()
     Serial.println("done\n");
 
   delay(10000);           // wait 5 seconds for next scan
-}*/
+}
