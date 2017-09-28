@@ -1,4 +1,9 @@
 /**
+ * Things to calibrate before launch
+ * Make sure Xcentre and Ycentre are actually the centre of the servo position
+ * If you have to switch the servo pins (as in switch servoX from 14 to 23)
+ * make sure you also switch the servoXratio and servoYratio values
+ *
  * Includes. Because we communicate to the MPU9250 over I2C, we need to include
  * both Wire.h & I2Cdev.h for this to work.
  */
@@ -16,7 +21,7 @@ int BAUD_RATE = 9600;
 int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 #define ENVIRONMENT_IS_DEV false
 #define AHRS true
-#define SerialDebug false
+#define SerialDebug true
 
 /**
  * Define the chip used.
@@ -50,20 +55,26 @@ int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 
  Servo servoX;// create servo object to control a servo on the X axis
  Servo servoY;// y axis servo
- int servoXpin = 23;
- int servoYpin = 14;
+ int servoXpin = 14;
+ int servoYpin = 23;
  // a maximum of eight servo objects can be created
 
- int Xcentre = 86;
- int Ycentre = 135;
+ int Xcentre = 90;
+ int Ycentre = 85;
 
- float servoXratio = 1;
- float servoYratio = 1;
+//servo ratio values represent the ratio between the motor distance to the pivot point and the servo arm length.
+//multiplying the desired angle by this value makes sure that the servo moves the right amount to move the
+//MOTOR to the desired angle. The higher ratio value is for the servo further away from the motor pivot
+//the lower ratio value is for the servo closer to the motor pivot
+ float servoXratio = 2.7;
+ float servoYratio = 1.7;
 
+//servoOffsetRatio ratio is just due to the internal servo error. It was found that to move the servo 10 degrees you have to
+//tell it to move ~13 degrees
  float servoOffsetRatio = 1.3;
 
+//variables for lead controller
  float XinCurrent, XoutCurrent, XinPrevious, XoutPrevious = 0;
-
  float YinCurrent, YoutCurrent, YinPrevious, YoutPrevious = 0;
 
 /**
@@ -93,6 +104,7 @@ void setup() {
         Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
         Serial.print(" I should be "); Serial.println(0x71, HEX);
     }
+
 }
 
 /**
@@ -121,9 +133,20 @@ void loop() {
       XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
       YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
 
+      //set motor gimbal limits
+      if(XoutCurrent > 5)
+        XoutCurrent = 5;
+      if(XoutCurrent < -5)
+        XoutCurrent = -5;
+      if(YoutCurrent > 5)
+        YoutCurrent = 5;
+      if(YoutCurrent < -5)
+        YoutCurrent = -5;
       //write values to servos
-      servoX.write(Xcentre + XoutCurrent*servoOffsetRatio);
-      servoY.write(Ycentre + YoutCurrent*servoOffsetRatio);
+      //servoX ratio is ratio of motor angle to servo angle
+      //Servo offset ratio is internal servo offset. Writing servoOffsetRatio degrees actually outputs 1 degree
+      servoX.write(Xcentre - XoutCurrent*servoOffsetRatio*servoXratio);
+      servoY.write(Ycentre - YoutCurrent*servoOffsetRatio*servoYratio);
 
       //Set previous values for next loop
       XoutPrevious = XoutCurrent;
