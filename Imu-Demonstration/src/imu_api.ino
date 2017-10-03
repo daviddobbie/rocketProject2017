@@ -1,9 +1,12 @@
+
+
 /**
  * Public API for retrieving the x-coordinate of the acceleration from the IMU.
  *
  * @returns a float which represents the x-coordinate of the current acceleration
  * of the IMU.
  */
+ /*
 float getAccelerationX() {
     return extendedVals.aX;
 }
@@ -24,6 +27,7 @@ float getAccelerationY() {
  * @returns a float which represents the z-coordinate of the current acceleration
  * of the IMU.
  */
+ /*
 float getAccelerationZ() {
     return extendedVals.aZ;
 }
@@ -34,6 +38,7 @@ float getAccelerationZ() {
  * @returns a float which represents the yaw of the current positional state
  * of the IMU.
  */
+ /*
 float getYaw() {
     return currentVals.yaw;
 }
@@ -44,6 +49,7 @@ float getYaw() {
  * @returns a float which represents the pitch of the current positional state
  * of the IMU.
  */
+ /*
 float getPitch() {
     return currentVals.pitch;
 }

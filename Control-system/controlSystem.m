@@ -9,33 +9,32 @@ Currently using arbitrary values of Ft, Dm, I.
 
 %}
 
-Dm = 0.1; %distance from rocket motor to centre of gravity
-I = 0.005; %rotational inertia of the rocket
+fSample = 100; %sample rate in Hz
+Dm = 0.04; %distance from rocket motor to centre of gravity
+I = 0.00018; %rotational inertia of the rocket
 Ft = 11; %max motor thrust force
-
 
 sysOL = tf([Ft*Dm], [I, 0, 0]); %Rocket system plant function
 
 Wn = sqrt(Ft*Dm/I); %natural frequency of oscillation
-
 alpha = 1/3; %alpha value for lead controller
 Wb = Wn*sqrt(alpha); %Wb value for lead controller
-
-C = (1/alpha)*tf([1, Wb], [1, (Wb/alpha)]); %Lead controller
+C = (1/alpha)*tf([1, Wb], [1, (Wb/alpha)]); %Lead controller continuous time
 
 sysOLC = sysOL*C; %open loop system with controller
 
-sysCL = C*sysOL/(1+C*sysOL); %closed loop system with controller
+sysCL = sysOLC/(1+sysOLC); %closed loop system with controller
 
-bode(sysOL);
-title('open loop system');
+Cd = c2d(C, 1/fSample, 'tustin')
 
-figure
-bode(sysOLC);
-title('controlled open loop system');
-
-figure
-bode(sysCL);
 [Gm,Pm,Wgm,Wpm] = margin(sysCL);
-title('controller closed loop system');
+PhaseMarin = Pm
 
+%bode plot of all transfer functions
+bode(sysOL);
+hold
+bode(C);
+bode(sysOLC);
+bode(sysCL);
+bode(Cd);
+legend('open loop plant', 'lead controller', 'controlled open loop plant', 'controlled closed loop system', 'discrete time lead controller');
