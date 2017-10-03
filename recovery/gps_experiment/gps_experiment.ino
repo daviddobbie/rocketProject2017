@@ -20,10 +20,7 @@ String LNG = 0;
 String LAT = 0;
 String TIME = 0;
 
-
-boolean debug = false;
-//SoftwareSerial gpsSerial(RXPIN,TXPIN); // RX, TX (TX not used)
-
+boolean debug = true;
 TinyGPSPlus gps;
 
 void activateTopAntenna(){
