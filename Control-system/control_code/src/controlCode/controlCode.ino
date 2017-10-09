@@ -8,7 +8,7 @@
  * both Wire.h & I2Cdev.h for this to work.
  */
 #include "Wire.h"
-#include "I2Cdev.h"
+//#include "I2Cdev.h"
 #include "MPU9250.h"
 #include "quaternionFilters.h"
 #include <Servo.h>
@@ -21,7 +21,7 @@ int BAUD_RATE = 9600;
 int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 #define ENVIRONMENT_IS_DEV false
 #define AHRS true
-#define SerialDebug true
+#define SerialDebug false
 
 /**
  * Define the chip used.
@@ -122,6 +122,7 @@ void loop() {
     //{
       SanitizedImuDataStruct outputData = transformValues(IMUdata);
       outputToCereal(outputData);
+
     //}
     //else
     //{
@@ -346,8 +347,10 @@ SanitizedImuDataStruct transformValues(ImuSensorDataStruct data) {
  * the Serial monitor.
  */
 void outputToCereal(SanitizedImuDataStruct outputData) {
-    String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" +
-    outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
-
+    //String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" +
+    //outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
+    String out = (String)outputData.pitch + ", " +
+    (String)outputData.roll + ", " + (String)outputData.yaw;
+      //Serial.println(outputData.pitch + ", " + outputData.roll + ", " outputData.yaw);
     Serial.println(out);
 }
