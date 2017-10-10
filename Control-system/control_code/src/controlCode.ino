@@ -21,7 +21,7 @@ int BAUD_RATE = 9600;
 int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 #define ENVIRONMENT_IS_DEV false
 #define AHRS true
-#define SerialDebug true
+#define SerialDebug false
 
 /**
  * Define the chip used.
@@ -105,6 +105,9 @@ void setup() {
         Serial.print(" I should be "); Serial.println(0x71, HEX);
     }
 
+    //delay(60000);
+  //  accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
+
 }
 
 /**
@@ -120,8 +123,8 @@ void loop() {
 
     //if(SerialDebug)
     //{
-      SanitizedImuDataStruct outputData = transformValues(IMUdata);
-      outputToCereal(outputData);
+      //SanitizedImuDataStruct outputData = transformValues(IMUdata);
+      //outputToCereal(outputData);
     //}
     //else
     //{
@@ -129,9 +132,13 @@ void loop() {
       XinCurrent = IMUdata.pitch;
       YinCurrent = IMUdata.yaw;
 
+
+
       //apply lead controller
       XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
       YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
+
+      outputCSV(XinCurrent, YinCurrent, XoutCurrent, YoutCurrent);
 
       //set motor gimbal limits
       if(XoutCurrent > 5)
@@ -350,4 +357,16 @@ void outputToCereal(SanitizedImuDataStruct outputData) {
     outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
 
     Serial.println(out);
+
+  }
+
+
+/**
+outputs CSV file to check that control system works
+*/
+void outputCSV(float Xin, float Yin, float Xout, float Yout)
+{
+  String out = "" + (String)Xin + "," + (String)Yin + "," + (String)Xout + "," + (String)Yout + "\n";
+  Serial.println(out);
+
 }
