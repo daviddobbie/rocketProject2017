@@ -123,14 +123,14 @@ void loop() {
 
     //if(SerialDebug)
     //{
-<<<<<<< HEAD:Control-system/control_code/src/controlCode.ino
+<<<<<<< HEAD:Control-system/control_code/src/controlCode.ino // Library directory if you don't have them on your computer
       //SanitizedImuDataStruct outputData = transformValues(IMUdata);
       //outputToCereal(outputData);
-=======
+======= // Library directory if you don't have them on your computer
       SanitizedImuDataStruct outputData = transformValues(IMUdata);
       outputToCereal(outputData);
 
->>>>>>> 4d5b54d9b7a0b293adcd05340a5482d95c6f4bd6:Control-system/control_code/src/controlCode/controlCode.ino
+>>>>>>> 4d5b54d9b7a0b293adcd05340a5482d95c6f4bd6:Control-system/control_code/src/controlCode/controlCode.ino // Library directory if you don't have them on your computer
     //}
     //else
     //{
@@ -375,6 +375,6 @@ outputs CSV file to check that control system works
 void outputCSV(float Xin, float Yin, float Xout, float Yout)
 {
   String out = "" + (String)Xin + "," + (String)Yin + "," + (String)Xout + "," + (String)Yout + "\n";
-  Serial.println(out);
+  Serial.print(out);
 
 }
