@@ -1,40 +1,72 @@
 #include <TinyGPS++.h>
-#include <i2c_t3.h>
- #include <SoftwareSerial.h>
 
+//in rev3 PCB greenwired: 24 GPS_ON_OFF; I2C_DIO and I2C_CLK pulled high with 2.2K VOUT
 
-#define RXPIN 7
-#define TXPIN 8
+// note: pins lead to Serial4 being used for GPS communication
+#define RXPIN 31
+#define TXPIN 32
+#define GPS_ON_OFF 24
+#define gpsSerial Serial4
+#define gpsSerialBaud 4800
 
-#define gpsSerialBaud 9600
+#define TOP_ANT 33
+#define BOT_ANT 34
+
+#define usbSerialBaud 4800
 #define gpsDecimalPoints 6
 
-SoftwareSerial gpsSerial(RXPIN,TXPIN); // RX, TX (TX not used)
+char serialOut = 0;
+String LNG = 0;
+String LAT = 0;
+String TIME = 0;
 
+boolean debug = true;
 TinyGPSPlus gps;
 
-
-
-void setupGPS() {
-  for (int i = 0; !gps.location.isUpdated(); i++) {
-    readGPS();
-    delay(20);
-    // Only print locking information every 50 iterations
-    //Serial.println(gps.charsProcessed());    
-    if (i%50 == 0) {
-      Serial.println("Checksum passed/failed: " + String(gps.passedChecksum(), DEC) + "/" + String(gps.failedChecksum(), DEC) + " Sats in view: " + gps.satellites.value());
-      Serial.println(getGPSLogString());
-      Serial.println(getGPSTimeString());      
-      Serial.println("Sentences with fix: " + (String)gps.sentencesWithFix());
+void activateTopAntenna(){
+    digitalWrite(BOT_ANT, LOW);
+    digitalWrite(TOP_ANT, HIGH);
 }
-  }
+
+void activateBotAntenna(){
+    digitalWrite(TOP_ANT, LOW);
+    digitalWrite(BOT_ANT, HIGH);
+}
+void setupGPS() {
+    pinMode(TOP_ANT, OUTPUT);
+    pinMode(BOT_ANT, OUTPUT);
+    activateTopAntenna(); //turns on antenna
+   
+    pinMode(GPS_ON_OFF, OUTPUT);
+    
+    digitalWrite(GPS_ON_OFF, HIGH); //sets enable on off to start GPS operation
+    digitalWrite(TXPIN, HIGH);  
+    delay(200);
+    digitalWrite(GPS_ON_OFF, LOW);
+    digitalWrite(TXPIN, LOW);
+  
+    gpsSerial.begin(gpsSerialBaud,SERIAL_8N1);
+    for (int i = 0; !gps.location.isUpdated(); i++) {
+      delay(20);
+      readGPS();
+      if (i%50 == 0) {
+        if(debug){
+          Serial.println("Checksum passed/failed: " + String(gps.passedChecksum(), DEC) + "/" + String(gps.failedChecksum(), DEC) + " Sats in view: " + gps.satellites.value());
+          Serial.println(getGPSLogString());
+          Serial.println(getGPSTimeString());    
+          Serial.println("CharsProcessed: " + (String)gps.charsProcessed());  
+          Serial.println("Sentences with fix: " + (String)gps.sentencesWithFix());
+        }
+      }
+    }
 }
 
 void readGPS() {
-
   while (gpsSerial.available()) {
-    gps.encode(gpsSerial.read());
-      
+   serialOut = gpsSerial.read();
+   //Serial.println((unsigned char)serialOut, HEX); 
+   gps.encode(serialOut);
+ 
   }
 }
 // Function for returning formatted GPS string
@@ -49,15 +81,17 @@ String getGPSTimeString() {
 
 
 void setup() {
-  gpsSerial.begin(gpsSerialBaud);
-  Serial.begin(9600);
+  Serial.begin(usbSerialBaud);
   setupGPS();
-
 }
 
 void loop() {
     readGPS();
-    //Serial.println(getGPSLogString());
-    delay(100);
+    if(debug){
+      Serial.println("Location: " + getGPSLogString() + " Time:" + getGPSTimeString());
+    }
+    LNG = String(gps.location.lng(), gpsDecimalPoints);
+    LAT = String(gps.location.lat(), gpsDecimalPoints);
+    TIME = String(gps.time.hour()) + ":" + String(gps.time.minute()) + ":" + String(gps.time.second());
 }
 
