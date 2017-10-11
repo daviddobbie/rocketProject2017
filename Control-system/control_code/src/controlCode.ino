@@ -28,8 +28,14 @@ int SERIAL_OUTPUT_SPEED_IN_MS = 10;
  */
  MPU9250 accelgyro;
 
- int intPin = 12;
- int myLed = 13;
+int intPin = 12;
+int myLed = 13;
+
+//LED is off when teensy begins programming, turns on after desired time to
+//indicate the IMU has recalibrated
+int launchWait = 60000; // time between teensy reset and IMU recalibration in ms
+int launchLED = 15;
+
 
  /**
   * Type definition of a struct that shall contain "raw" IMU sensor data with
@@ -85,6 +91,10 @@ void setup() {
     Wire.begin();
     Serial.begin(BAUD_RATE);
 
+    pinMode(launchLED, OUTPUT);
+
+    digitalWrite(launchLED, LOW);
+
     //Setup servo pins
     servoX.attach(servoXpin);  // attaches servoX on pin 23
     servoY.attach(servoYpin);  // attaches servoY on pin 14
@@ -105,8 +115,11 @@ void setup() {
         Serial.print(" I should be "); Serial.println(0x71, HEX);
     }
 
-    delay(30000);
+    delay(launchWait);
     accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
+
+    //signal ready for launch
+    digitalWrite(launchLED, HIGH);
 
 }
 
