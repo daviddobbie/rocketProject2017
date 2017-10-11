@@ -1,7 +1,7 @@
 /**
  * Things to calibrate before launch
  * Make sure Xcentre and Ycentre are actually the centre of the servo position
- * If you have to switch the servo pins (as in switch servoX from 14 to 23)
+ * If you have to switch the servo pins (servoX was origninally pin 14, servoY was pin 23)
  * make sure you also switch the servoXratio and servoYratio values
  *
  * Includes. Because we communicate to the MPU9250 over I2C, we need to include
@@ -105,8 +105,8 @@ void setup() {
         Serial.print(" I should be "); Serial.println(0x71, HEX);
     }
 
-    //delay(120000);
-    //accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
+    delay(30000);
+    accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
 
 }
 
@@ -127,7 +127,7 @@ void loop() {
       //outputToCereal(outputData);
     //}
     //else
-    //{}
+    //{
       //get current value of motor angle
       XinCurrent = IMUdata.pitch;
       YinCurrent = IMUdata.yaw;
@@ -137,7 +137,6 @@ void loop() {
       //apply lead controller
       XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
       YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
-
 
       outputCSV(XinCurrent, YinCurrent, XoutCurrent, YoutCurrent);
 
