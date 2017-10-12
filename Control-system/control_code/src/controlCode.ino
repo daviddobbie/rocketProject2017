@@ -114,12 +114,13 @@ void setup() {
         Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
         Serial.print(" I should be "); Serial.println(0x71, HEX);
     }
-
+/*
     delay(launchWait);
     accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
 
     //signal ready for launch
     digitalWrite(launchLED, HIGH);
+    */
 
 }
 
