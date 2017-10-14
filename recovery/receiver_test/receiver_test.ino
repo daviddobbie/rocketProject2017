@@ -7,6 +7,9 @@
     // It is designed to work with the other example Arduino9x_TX
      
     #include <SPI.h>
+    #include <TimeLib.h>
+
+    
     #include <RH_RF95.h>
      
     #define RFM95_CS 10
@@ -21,6 +24,8 @@
      
     // Blinky on receipt
     #define LED 13
+
+    boolean debug = false;
      
     void setup() 
     {
@@ -52,7 +57,9 @@
         while (1);
       }
       Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
-     
+
+
+      Serial.println("CSV FORMAT: LONGITUDE, LATITUDE, RECEIVER'S TIME");
       // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
      
       // The default transmitter power is 13dBm, using PA_BOOST.
@@ -72,17 +79,12 @@
         if (rf95.recv(buf, &len))
         {
           digitalWrite(LED, HIGH);
-          RH_RF95::printBuffer("Received: ", buf, len);
-          Serial.print("Got: ");
-          Serial.println((char*)buf);
-           Serial.print("RSSI: ");
-          Serial.println(rf95.lastRssi(), DEC);
+          if(debug) RH_RF95::printBuffer("Received: ", buf, len);
+          Serial.print((char*)buf);
+          Serial.print(", " + currentTime() + ", "); //posts receiver's time stamp
+          Serial.println(+rf95.lastRssi(), DEC);
           
           // Send a reply
-          uint8_t data[] = "And hello back to you";
-          rf95.send(data, sizeof(data));
-          rf95.waitPacketSent();
-          Serial.println("Sent a reply");
           digitalWrite(LED, LOW);
         }
         else
@@ -91,3 +93,18 @@
         }
       }
     }
+String currentTime(){
+   String t;
+   t += hour();
+   t += printDigits(minute());
+   t += printDigits(second());
+   return t;
+}
+/* makes the time on the Teensy printable*/
+String printDigits(int digits){ // taken from example teensy time
+  String str = ":";
+  if(digits < 10)
+    str += "0";
+  str += digits;
+  return str;
+}
