@@ -8,7 +8,7 @@
  * both Wire.h & I2Cdev.h for this to work.
  */
 #include "Wire.h"
-#include "I2Cdev.h"
+//#include "I2Cdev.h"
 #include "MPU9250.h"
 #include "quaternionFilters.h"
 #include <Servo.h>
@@ -22,6 +22,29 @@ int SERIAL_OUTPUT_SPEED_IN_MS = 10;
 #define ENVIRONMENT_IS_DEV false
 #define AHRS true
 #define SerialDebug false
+
+/*
+ *Calibration variables. Must be altered for different systems
+*/
+
+ Servo servoX;// create servo object to control a servo on the X axis
+ Servo servoY;// y axis servo
+ int servoXpin = 14;
+ int servoYpin = 23;
+
+int Xcentre = 90;
+int Ycentre = 85;
+
+//servo ratio values represent the ratio between the motor distance to the pivot point and the servo arm length.
+//multiplying the desired angle by this value makes sure that the servo moves the right amount to move the
+//MOTOR to the desired angle. The higher ratio value is for the servo further away from the motor pivot
+//the lower ratio value is for the servo closer to the motor pivot
+ float servoXratio = 2.7;
+ float servoYratio = 1.7;
+
+//servoOffsetRatio ratio is just due to the internal servo error. It was found that to move the servo 10 degrees you have to
+//tell it to move ~13 degrees
+ float servoOffsetRatio = 1.3;
 
 /**
  * Define the chip used.
@@ -59,26 +82,6 @@ int launchLED = 15;
  } SanitizedImuDataStruct;
 
 
- Servo servoX;// create servo object to control a servo on the X axis
- Servo servoY;// y axis servo
- int servoXpin = 14;
- int servoYpin = 23;
- // a maximum of eight servo objects can be created
-
- int Xcentre = 90;
- int Ycentre = 85;
-
-//servo ratio values represent the ratio between the motor distance to the pivot point and the servo arm length.
-//multiplying the desired angle by this value makes sure that the servo moves the right amount to move the
-//MOTOR to the desired angle. The higher ratio value is for the servo further away from the motor pivot
-//the lower ratio value is for the servo closer to the motor pivot
- float servoXratio = 2.7;
- float servoYratio = 1.7;
-
-//servoOffsetRatio ratio is just due to the internal servo error. It was found that to move the servo 10 degrees you have to
-//tell it to move ~13 degrees
- float servoOffsetRatio = 1.3;
-
 //variables for lead controller
  float XinCurrent, XoutCurrent, XinPrevious, XoutPrevious = 0;
  float YinCurrent, YoutCurrent, YinPrevious, YoutPrevious = 0;
@@ -96,8 +99,8 @@ void setup() {
     digitalWrite(launchLED, LOW);
 
     //Setup servo pins
-    servoX.attach(servoXpin);  // attaches servoX on pin 23
-    servoY.attach(servoYpin);  // attaches servoY on pin 14
+    servoX.attach(servoXpin);  // attaches servoX on specified pin
+    servoY.attach(servoYpin);  // attaches servoY on specified pin
 
     // Set up the interrupt pin for IMU, its set as active high, push-pull
     pinMode(intPin, INPUT);
@@ -114,14 +117,6 @@ void setup() {
         Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
         Serial.print(" I should be "); Serial.println(0x71, HEX);
     }
-/*
-    delay(launchWait);
-    accelgyro.calibrateMPU9250(accelgyro.gyroBias, accelgyro.accelBias);
-
-    //signal ready for launch
-    digitalWrite(launchLED, HIGH);
-    */
-
 }
 
 /**
@@ -131,50 +126,43 @@ void loop() {
     // Sample data at 100Hz
     delay(SERIAL_OUTPUT_SPEED_IN_MS);
 
-    // Selection of data from either IMU or mock IMU facade here.
+    //fetch data from IMU
     ImuSensorDataStruct IMUdata;
     IMUdata = fetchData();
+    XinCurrent = IMUdata.pitch;
+    YinCurrent = IMUdata.yaw;
 
-    //if(SerialDebug)
-    //{
-      //SanitizedImuDataStruct outputData = transformValues(IMUdata);
-      //outputToCereal(outputData);
-    //}
-    //else
-    //{
-      //get current value of motor angle
-      XinCurrent = IMUdata.pitch;
-      YinCurrent = IMUdata.yaw;
+    if(SerialDebug){
+      SanitizedImuDataStruct Sdata = transformValues(IMUdata);
+      outputToSerial(Sdata);
+    }
 
+    //apply lead controller
+    XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
+    YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
 
+    //outputCSV(XinCurrent, YinCurrent, XoutCurrent, YoutCurrent);
 
-      //apply lead controller
-      XoutCurrent = 2.4*XinCurrent - 1.801*XinPrevious + 0.4004*XoutPrevious;
-      YoutCurrent = 2.4*YinCurrent - 1.801*YinPrevious + 0.4004*YoutPrevious;
+    //set motor gimbal limits
+    if(XoutCurrent > 5)
+      XoutCurrent = 5;
+    if(XoutCurrent < -5)
+      XoutCurrent = -5;
+    if(YoutCurrent > 5)
+      YoutCurrent = 5;
+    if(YoutCurrent < -5)
+      YoutCurrent = -5;
+    //write values to servos
+    //servoX ratio is ratio of motor angle to servo angle
+    //Servo offset ratio is internal servo offset. Writing servoOffsetRatio degrees actually outputs 1 degree
+    servoX.write(Xcentre - XoutCurrent*servoOffsetRatio*servoXratio);
+    servoY.write(Ycentre - YoutCurrent*servoOffsetRatio*servoYratio);
 
-      outputCSV(XinCurrent, YinCurrent, XoutCurrent, YoutCurrent);
-
-      //set motor gimbal limits
-      if(XoutCurrent > 5)
-        XoutCurrent = 5;
-      if(XoutCurrent < -5)
-        XoutCurrent = -5;
-      if(YoutCurrent > 5)
-        YoutCurrent = 5;
-      if(YoutCurrent < -5)
-        YoutCurrent = -5;
-      //write values to servos
-      //servoX ratio is ratio of motor angle to servo angle
-      //Servo offset ratio is internal servo offset. Writing servoOffsetRatio degrees actually outputs 1 degree
-      servoX.write(Xcentre - XoutCurrent*servoOffsetRatio*servoXratio);
-      servoY.write(Ycentre - YoutCurrent*servoOffsetRatio*servoYratio);
-
-      //Set previous values for next loop
-      XoutPrevious = XoutCurrent;
-      YoutPrevious = YoutCurrent;
-      XinPrevious = XinCurrent;
-      YinPrevious = YinCurrent;
-  //  }
+    //Set previous values for next loop
+    XoutPrevious = XoutCurrent;
+    YoutPrevious = YoutCurrent;
+    XinPrevious = XinCurrent;
+    YinPrevious = YinCurrent;
 }
 
 
@@ -366,7 +354,7 @@ SanitizedImuDataStruct transformValues(ImuSensorDataStruct data) {
  * @param outputData A sanitized struct containing data that should be output to
  * the Serial monitor.
  */
-void outputToCereal(SanitizedImuDataStruct outputData) {
+void outputToSerial(SanitizedImuDataStruct outputData) {
     String out = "{ \"pitch\": \"" + outputData.pitch + "\", \"roll\": \"" +
     outputData.roll + "\", \"yaw\": \"" + outputData.yaw + "\"}";
 
@@ -376,7 +364,8 @@ void outputToCereal(SanitizedImuDataStruct outputData) {
 
 
 /**
-outputs CSV file to check that control system works
+outputs CSV file to check that control system works.
+File structure - X axis input angle, Y axis input angle, X axis output angle, Y axis output angle
 */
 void outputCSV(float Xin, float Yin, float Xout, float Yout)
 {
