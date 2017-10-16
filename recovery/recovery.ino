@@ -21,8 +21,11 @@ boolean isRev2 = false; //revision 2 of pcb
 #define TOP_ANT 33
 #define BOT_ANT 34
 
+// defines the IMU pins
+#define IMU_SDA 38
+#define IMU_SCL 37
 
-#define usbSerialBaud 4800
+#define usbSerialBaud 9600
 #define gpsDecimalPoints 6
 
 char serialOut = 0;
@@ -72,8 +75,8 @@ void setup() {
   
     pinMode(piezo, OUTPUT);
 
-    Serial.begin(9600);
-
+    Serial.begin(usbSerialBaud);
+    Serial.println("CSV FORMAT: LONGITUDE, LATITUDE, TRANSMITTER'S TIME");
     radioSetup();
     setupGPS();
     setupCard();
@@ -95,9 +98,9 @@ void loop() {
   LAT = String(gps.location.lat(), gpsDecimalPoints);
   TIME = String(gps.time.hour()) + ":" + String(gps.time.minute()) + ":" + String(gps.time.second());
 
-  String gpsCoords = "LNG:" + LNG + "LAT:" + LAT;
-  String msg = "g" + gpsCoords + "t" + currentTime(); 
-  writeToSD(msg);
+  String gpsCoords =LNG + ", " + LAT;
+  String msg = gpsCoords; // in csv file format for simple export to other formats
+  writeToSD(msg + ", " + currentTime());
   transmitRadio(msg);
 
 
