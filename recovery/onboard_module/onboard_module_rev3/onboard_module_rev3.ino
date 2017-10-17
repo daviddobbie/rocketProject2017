@@ -33,6 +33,7 @@ String LNG = 0;
 String LAT = 0;
 String TIME = 0;
 
+boolean useTop = true;
 boolean debug = false;
 TinyGPSPlus gps;
 
@@ -88,6 +89,14 @@ void setup() {
  * Radio and gps being called and used
  */
 void loop() {
+  if(useTop){
+    activateTopAntenna();
+    useTop = false;
+  }
+  else {
+    activateBotAntenna();
+    useTop = true;
+  }
   buzzer();
   //digitalWrite(led,HIGH); // tests that the controller board is operating
   readGPS();
