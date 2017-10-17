@@ -59,7 +59,7 @@
       Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
 
 
-      Serial.println("CSV FORMAT: LONGITUDE, LATITUDE, RECEIVER'S TIME");
+      Serial.println("CSV FORMAT: LONGITUDE, LATITUDE, GPS TIME, GPS CHARS PROCESSED, BASE MODULE TIME ELAPSED, RADIO SIGNAL STRENGTH");
       // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
      
       // The default transmitter power is 13dBm, using PA_BOOST.

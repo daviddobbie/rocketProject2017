@@ -76,7 +76,7 @@ void setup() {
     pinMode(piezo, OUTPUT);
 
     Serial.begin(usbSerialBaud);
-    Serial.println("CSV FORMAT: LONGITUDE, LATITUDE, TRANSMITTER'S TIME");
+    Serial.println("CSV FORMAT: LONGITUDE, LATITUDE, GPS TIME, GPS CHARS PROCESSED");
     radioSetup();
     setupGPS();
     setupCard();
@@ -97,12 +97,18 @@ void loop() {
   LNG = String(gps.location.lng(), gpsDecimalPoints);
   LAT = String(gps.location.lat(), gpsDecimalPoints);
   TIME = String(gps.time.hour()) + ":" + String(gps.time.minute()) + ":" + String(gps.time.second());
-
-  String gpsCoords =LNG + ", " + LAT;
+  String gpsCoords =LNG + ", " + LAT + ", " + TIME + ", " + gps.charsProcessed();
   String msg = gpsCoords; // in csv file format for simple export to other formats
-  writeToSD(msg + ", " + currentTime());
+  Serial.println(msg);
+  writeToSD(msg);
   transmitRadio(msg);
-
+  if(debug){
+          Serial.println("Checksum passed/failed: " + String(gps.passedChecksum(), DEC) + "/" + String(gps.failedChecksum(), DEC) + " Sats in view: " + gps.satellites.value());
+          Serial.println(getGPSLogString());
+          Serial.println(getGPSTimeString());    
+          Serial.println("CharsProcessed: " + (String)gps.charsProcessed());  
+          Serial.println("Sentences with fix: " + (String)gps.sentencesWithFix());    
+  }
 
 }
 
@@ -132,6 +138,12 @@ void setupGPS() {
    //sets up the activate pulse for the system
     pinMode(GPS_ON_OFF, OUTPUT);
     
+    digitalWrite(GPS_ON_OFF, HIGH); //sets enable on off pulse to start GPS operation
+    digitalWrite(TXPIN, HIGH);  
+    delay(200);
+    digitalWrite(GPS_ON_OFF, LOW);
+    digitalWrite(TXPIN, LOW);
+    delay(200);
     digitalWrite(GPS_ON_OFF, HIGH); //sets enable on off pulse to start GPS operation
     digitalWrite(TXPIN, HIGH);  
     delay(200);
@@ -167,12 +179,12 @@ void transmitRadio(String message){
   int msgLength = message.length();
   char msgChar[msgLength];
   message.toCharArray(msgChar, msgLength+1); // converts the message into the appropriate char array for transmission
-
+  if(debug) 
   Serial.println("Message: "+ message);
   if(debug) Serial.println("Transmitting..."); // Send a message to rf95_server
   
   if(debug) Serial.println("Sending..."); delay(10);
-  rf95.send((uint8_t *)msgChar, 20);
+  rf95.send((uint8_t *)msgChar, 40);
  
   if(debug) Serial.println("Waiting for packet to complete..."); delay(10);
   rf95.waitPacketSent();
