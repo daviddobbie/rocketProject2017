@@ -1,11 +1,11 @@
-boolean isRev3 = true; //revision 3 of pcb
-boolean isRev2 = false; //revision 2 of pcb
+boolean isRev3 = false; //revision 3 of pcb
+boolean isRev2 = true; //revision 2 of pcb
 
 #include <RH_RF95.h> // this uses the radiohead arduino library http://www.airspayce.com/mikem/arduino/RadioHead/classRH__RF95.html
 #include <SD.h>
 #include <SPI.h>
 #include <TimeLib.h>
-#include <i2c_t3.h>
+//#include <i2c_t3.h>
 #include <TinyGPS++.h>
 
 
@@ -40,16 +40,16 @@ TinyGPSPlus gps;
 // Specfies the frequency transmitted from the RFM96W radio
 #define RF95_FREQ 434.0
 
-/*REVISION 3 PCB*/
+/*REVISION 3 PCB
   #define RFM95_CS 10
   #define RFM95_RST 9
   #define RFM95_INT 28
-  
-/* REVISION 2 PCB
+  */
+/* REVISION 2 PCB*/
   #define RFM95_CS 10
   #define RFM95_RST 0
   #define RFM95_INT 1
-*/
+
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
