@@ -3,16 +3,18 @@ Model of rocket. Rocket plant has double integral transfer function.
 Lead controller used. Max phase lead set at 30 degrees. Frequency of 
 max phase lead set at natural frequency of rocket. 
 
-Currently using arbitrary values of Ft, Dm, I.
-
-
+Update values of Ft, Dm, I and fSample for different rockets. 
+Ft = motor thrust force
+Dm = distance from rocket motor thrust to centre of gravity
+I = rotational inertia of rocket around centre of gravity
+fSample = microcontroller sample rate reading values from the IMU in Hz
 
 %}
 
-fSample = 100; %sample rate in Hz
-Dm = 0.04; %distance from rocket motor to centre of gravity
-I = 0.00018; %rotational inertia of the rocket
-Ft = 11; %max motor thrust force
+fSample = 100; 
+Dm = 0.04; 
+I = 0.00018; 
+Ft = 11; 
 
 sysOL = tf([Ft*Dm], [I, 0, 0]); %Rocket system plant function
 
