@@ -1,6 +1,4 @@
-# Rocket Modellin
-## Purpose
-This section contains the models used to design the rocket and simulate its behaviour.
+# Rocket Modelling
 ## Open Rocket
-
-## Future Work
+All the rocket designs were modelled with the OpenRocket software.    
+This was done to simulate each designs performance when launched
