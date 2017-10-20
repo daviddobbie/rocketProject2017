@@ -18,3 +18,4 @@ Issues that were raised with the previous version have been addressed, these inc
 
     * HKM-282A Servo
     * 1/32 inch control rod
+    * 2x M3x10mm
