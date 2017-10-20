@@ -1,7 +1,12 @@
 # Rocket CAD
-All the rocket CAD files were designed in OnShape, a cloud based, open-source CAD software.
+All the rocket CAD files were designed in OnShape, a cloud based, open-source CAD software.    
+The basic designs modelled with OpenRocket were converted to CAD models that could be 3D printed.
+## Using OnShape
+OnShape is similar to standard CAD software (Sloidworks, AutoCAD) except with the addition of version control an the ability to link between documents.   
+Parts and assemblies are included in OnShape but it is advisable to contain all your parts in a single Part Studio to reduece complexity.
+## Designs
 ### Athena Mk 1.0
-Original team design that was discontinued infavor of the cone rocket.   
+Original team design that was discontinued in favor of the cone rocket.   
 [OnShape Document](https://cad.onshape.com/documents/2019db2de40d4090ff84086a/w/bdaca4e6df1e9552dd54dee6/e/34c61646b283667b1d52ec77)
 ### Athena Mk 2.0
 The passively stable cone rocket.    
