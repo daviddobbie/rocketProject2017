@@ -10,5 +10,5 @@ The actovely stable (gimballed) cone rocket.
 [OnShape Document](https://cad.onshape.com/documents/0f010e1928b5ff53af9e6f65/w/b7a54311fe5ab080fbc05722/e/73f9c92d5f48f3ef2f847937)
 
 ### Athena Mk 3.0
-The actively stable two stage G-class rocket
+The actively stable two stage G-class rocket    
 [OnShape Document](https://cad.onshape.com/documents/9c18878e6faebb54262b731f/w/ca7579d91de786a386be370d/e/f7db08edaa3e677c4bf4a746)
