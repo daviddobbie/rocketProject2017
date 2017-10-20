@@ -10,3 +10,4 @@ This inital design was intended to test the dual ring gyroscopic design for the 
     * HKM-282A Servo
     * 1/32 inch control rod
     * Ball and roller link (4.8x2x18mm)
+    * 2x M3x10mm
