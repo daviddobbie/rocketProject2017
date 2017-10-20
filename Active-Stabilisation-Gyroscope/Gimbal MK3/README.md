@@ -14,4 +14,6 @@ Issues that were raised with the previous version have been addressed, these inc
 ### Hardware Required 
 
     * HKM - 282A Servo
-    *1/32 inch control rod
+    * 1/32 inch control rod
+    * M3x5mm
+    * M3x8mm
