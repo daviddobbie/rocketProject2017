@@ -12,5 +12,5 @@
 |[10kohm 1206 Resistor](http://nz.element14.com/walsin/wr12x1002ftl/res-thick-film-10k-1-200v-1206/dp/2502605)|0.005|10|0.05|
 |[GY-91 IMU breakout](https://www.banggood.com/GY-91-MPU9250-BMP280-10DOF-Acceleration-Gyroscope-Compass-Nine-Shaft-Sensor-Module-p-1129541.html)|11.75|1|11.75|
 |SBR3U40P1-7 SMT Schottky Diode|0.715|10|7.15|
-|PCB|20(est.)|1|20|
+|PCB|20.00(est.)|1|20.00|
 |Total Cost|||321.15|
