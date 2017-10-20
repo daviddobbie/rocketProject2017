@@ -9,3 +9,7 @@ This design was made to have similar operation to the previous gimbal revisions 
 
     * HC2422T Servo
     * 1/32inch control rod
+    * 4X M3x10mm
+    * 2X M3x15mm
+    * 4X M3x20mm
+    * 2X M3x35mm
